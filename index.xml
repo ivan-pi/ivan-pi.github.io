@@ -95,7 +95,7 @@ It makes use of a variety of open source projects including:
       
       <guid>/code/</guid>
       <description>In my free time I like to work on scientific coding projects in Fortran.
-Fortran interfaces  nlopt METIS FLANN: Fast Library for Approximate Nearest Neighbors (original library here)  Legacy code  TOMS 494: PDEONE - Solutions of systems of partial differential equations in one dimension TOMS 675: Fortran subroutines for computing the square root covariance filter and square root information filter in dense and hessenberg forms  </description>
+Fortran interfaces The Fortran 2003 standard added features for interoperability with the C programming language. These can be accesed through the intrinsic iso_c_binding module and allow programmers to smoothly interface between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C++ and vice versa.</description>
     </item>
     
     <item>
