@@ -37,9 +37,13 @@
 
 <h2 id="fortran-interfaces">Fortran interfaces</h2>
 
+<p>Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic <code>iso_c_binding</code> module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C++ and vice versa.</p>
+
+<p>Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:</p>
+
 <ul>
-<li><a href="https://github.com/ivan-pi/nlopt">nlopt</a></li>
-<li><a href="https://github.com/ivan-pi/fmetis">METIS</a></li>
+<li><a href="https://github.com/ivan-pi/nlopt">nlopt</a>: library for nonlinear optimization</li>
+<li><a href="https://github.com/ivan-pi/fmetis">METIS</a>: Serial Graph Partitioning and Fill-reducing Matrix Ordering</li>
 <li><a href="https://github.com/ivan-pi/flann">FLANN</a>:
 Fast Library for Approximate Nearest Neighbors (original library <a href="http://people.cs.ubc.ca/~mariusm/flann">here</a>)</li>
 </ul>

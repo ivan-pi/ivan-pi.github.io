@@ -40,7 +40,8 @@ It makes use of a variety of open source projects including:
       
       <guid>/code/</guid>
       <description>In my free time I like to work on scientific coding projects in Fortran.
-Fortran interfaces  nlopt METIS FLANN: Fast Library for Approximate Nearest Neighbors (original library here)  Legacy code  Algorithm 494: PDEONE is a subroutine developed by Sincovec and Madsen in 1975 for solving one-dimensional systems of PDEs using the method of lines. Second-order centered difference approximations are used to discretize the spatial variable and yield a system of ordinary differential equations that can be integrated in time with a robust ODE integrator (like LSODE).</description>
+Fortran interfaces Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic iso_c_binding module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C++ and vice versa.
+Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:</description>
     </item>
     
     <item>
