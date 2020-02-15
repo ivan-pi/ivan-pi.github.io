@@ -76,6 +76,19 @@ Hugo Static Site Generator v0.55.6-A5D4C82D linux/amd64 BuildDate: 2019-05-18T07
 
 <p><a href="https://gohugo.io/content-management/archetypes/">Archetype</a> templates can be used to preconfigure the front matter and possibly also the content dispositions for the the different content types.</p>
 
+<h2 id="deploying-the-page">Deploying the page</h2>
+
+<h3 id="host-on-github">Host on GitHub</h3>
+
+<p>At the moment I am hosting this website using GitHub pages as a user page located at <a href="https://ivan-pi.github.io">https://ivan-pi.github.io</a>. The sources are located at <a href="https://github.com/ivan-pi/hugo_blog">https://github.com/ivan-pi/hugo_blog</a>. This kind of setup is described in the <a href="https://gohugo.io/hosting-and-deployment/hosting-on-github/">Hugo</a> documentation.</p>
+
+<p>Deploying the page is automated using the <code>deploy.sh</code> script:</p>
+
+<pre><code>./deploy.sh [message]
+</code></pre>
+
+<p>which accepts an optional commit message. The page should be up and running within a couple minutes.</p>
+
 <h2 id="displaying-math-using-katex">Displaying math using Katex</h2>
 
 <p>Math can be rendered using the <a href="https://katex.org/">Katex</a> engine. The necessary lines of HTML to achieve this are found in the partials folder <code>\themes\mytheme\layouts\partials\</code> in the file <code>katex.html</code>.</p>
