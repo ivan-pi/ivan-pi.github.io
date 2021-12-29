@@ -6,7 +6,9 @@
 
     <title>Code development | Ivan Pribec</title>
 
-    <style>body{margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0 10px}h1,h2,h3{line-height:1.2}div.header h1{padding-top:0;padding-bottom:8px;margin-bottom:24px;font-size:18px;font-weight:400;border-bottom:1px solid}.header-menu{float:right}ul.pagination{list-style-type:none;text-align:center;padding:0}ul.pagination>li{padding:0 8px;display:inline-block}div.footer{border-top:1px solid;text-align:center}img{max-width:100%;max-height:100%;display:block;margin-left:auto;margin-right:auto}a:link{color:#3070b3}a:hover{color:#e37222}</style>
+    <style>body{margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0 10px}h1,h2,h3{line-height:1.2}div.header h1{padding-top:0;padding-bottom:8px;margin-bottom:24px;font-size:18px;font-weight:400;border-bottom:1px solid}.header-menu{float:right}ul.pagination{list-style-type:none;text-align:center;padding:0}ul.pagination>li{padding:0 8px;display:inline-block}div.footer{border-top:1px solid;text-align:center}img{max-width:100%;max-height:100%;display:block;margin-left:auto;margin-right:auto}a:link{color:#3070b3}a:hover{color:#e37222}code.has-jax{-webkit-font-smoothing:antialiased;background:inherit!important;border:none!important;font-size:100%}</style>
+
+    
 
     
 </head>
@@ -34,22 +36,16 @@
 </header>
 <article>
     <p>In my free time I like to work on scientific coding projects in Fortran.</p>
-
 <h2 id="fortran-interfaces">Fortran interfaces</h2>
-
 <p>Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic <code>iso_c_binding</code> module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C++ and vice versa.</p>
-
 <p>Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:</p>
-
 <ul>
 <li><a href="https://github.com/ivan-pi/nlopt">nlopt</a>: library for nonlinear optimization</li>
 <li><a href="https://github.com/ivan-pi/fmetis">METIS</a>: Serial Graph Partitioning and Fill-reducing Matrix Ordering</li>
 <li><a href="https://github.com/ivan-pi/flann">FLANN</a>:
 Fast Library for Approximate Nearest Neighbors (original library <a href="http://people.cs.ubc.ca/~mariusm/flann">here</a>)</li>
 </ul>
-
 <h2 id="legacy-code">Legacy code</h2>
-
 <ul>
 <li><a href="https://github.com/ivan-pi/TOMS-494">Algorithm 494: PDEONE</a> is a subroutine developed by Sincovec and Madsen in 1975 for solving one-dimensional systems of PDEs using the method of lines. Second-order centered difference approximations are used to discretize the spatial variable and yield a system of ordinary differential equations that can be integrated in time with a robust ODE integrator (like LSODE).</li>
 <li><a href="https://github.com/ivan-pi/TOMS-Algorithm-675">Algorithm 675</a>: Fortran subroutines for computing the square root covariance filter and square root information filter in dense and hessenberg forms; codes are provided for the square root covariance filter and the square root information filter.</li>

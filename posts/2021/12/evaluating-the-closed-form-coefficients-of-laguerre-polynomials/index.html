@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Evaluating the closed form coefficients of Laguerre polynomials | Ivan Pribec</title>
+
+    <style>body{margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0 10px}h1,h2,h3{line-height:1.2}div.header h1{padding-top:0;padding-bottom:8px;margin-bottom:24px;font-size:18px;font-weight:400;border-bottom:1px solid}.header-menu{float:right}ul.pagination{list-style-type:none;text-align:center;padding:0}ul.pagination>li{padding:0 8px;display:inline-block}div.footer{border-top:1px solid;text-align:center}img{max-width:100%;max-height:100%;display:block;margin-left:auto;margin-right:auto}a:link{color:#3070b3}a:hover{color:#e37222}code.has-jax{-webkit-font-smoothing:antialiased;background:inherit!important;border:none!important;font-size:100%}</style>
+
+    
+
+    <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$','$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    }
+  };
+
+  window.addEventListener('load', (event) => {
+      document.querySelectorAll("mjx-container").forEach(function(x){
+        x.parentElement.classList += 'has-jax'})
+    });
+
+</script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+<div class="header">
+    <h1>
+        <a href="/">Ivan Pribec</a>
+        <div class="header-menu">
+            <a href="/posts/">blog</a>
+            <a href="/code/">code</a>
+            <a href="/now/">now</a>
+        </div>
+    </h1>
+</div>
+<div id="content">
+
+<header>
+    <h1>Evaluating the closed form coefficients of Laguerre polynomials</h1>
+    
+
+<div class="post-meta">
+    Date &#x5b;
+    <time datetime="2021-12-29">Dec 29, 2021</time>
+    &#x5d;
+    Tags &#x5b;
+    <a href="/tags/laguerre/">Laguerre</a>
+    <a href="/tags/polynomials/">Polynomials</a>
+    <a href="/tags/fortran/">Fortran</a>
+    &#x5d;
+</div>
+</header>
+<article>
+    <h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials">Evaluating the closed form coefficients of Laguerre polynomials</h1>
+<p>For some numerical applications it can be useful to work with the closed form
+expression for Laguerre polynomials. The closed form is given by</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$</td>
+<td style="width: 10000px; text-align: right;">(1)</td>
+</table>
+
+<p>We can evaluate the coefficients with the help of the factorial formula</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
+<td style="width: 10000px; text-align: right;">(2)</td>
+</table>
+
+<p>Since $n$ and $k$ are both integers, the coefficients are rational numbers.
+For most computational applications we will likely only need to work with
+floating point approximations of the coefficients.</p>
+<p>When evaluating the coefficients using the factorial formula we should
+be careful to avoid overflow. For example if we try to compute $$n!$$ using default Fortran integers (32-bit), it will only be possible to calculate coefficients for $n \leq 12$.</p>
+<p>To avoid such issues we can calculate the coefficients using the
+the gamma function $\Gamma$ and the logarithm thereof. This follows from the helpful observation that for integer arguments</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$\Gamma(n&#43;1) = n!$$</td>
+<td style="width: 10000px; text-align: right;">(3)</td>
+</table>
+
+<p>For the coefficients of $L_n(x)$, a straightforward Fortran implementation might look as follows:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fortran" data-lang="fortran">  <span class="k">pure function </span><span class="n">lagcoefs</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">n</span>
+    <span class="kt">real</span> <span class="kd">::</span> <span class="n">a</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">)</span>
+    <span class="kt">integer</span> <span class="kd">::</span> <span class="n">k</span>
+
+    <span class="k">do </span><span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span>
+      <span class="n">a</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="n">k</span> <span class="o">*</span> <span class="nb">exp</span><span class="p">(</span> <span class="p">&amp;</span>
+            <span class="nb">log_gamma</span><span class="p">(</span><span class="kt">real</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="p">&amp;</span>
+        <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="nb">log_gamma</span><span class="p">(</span><span class="kt">real</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="p">&amp;</span>
+          <span class="o">-</span> <span class="nb">log_gamma</span><span class="p">(</span><span class="kt">real</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
+    <span class="k">end do
+</span><span class="k">  end function</span>
+</code></pre></div><p>where we have used the properties of logarithms to transform the quotient into
+subtraction.  The input <code>n</code> should be a non-negative integer value.
+The coefficients returned by the procedure are given in <em>ascending</em> order of
+powers of $x$.</p>
+<p>A similar procedure can be written for the derivative of the Laguerre polynomial.
+These are given be the expression</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$L&#39;_n(x) = \sum_{k=0}^n \binom{n}{k}\frac{(-1)^k}{k!} k x^{k-1}$$</td>
+<td style="width: 10000px; text-align: right;">(4)</td>
+</table>
+
+<p>Here we should emphasize that the $i$-th derivative of a Laguerre polynomial
+is polynomial of order ${n - i}$ (a polynomial of order $n$
+is described by $n+1$ coefficients).</p>
+<p>The implementation can also be adapted easily to return the coefficients of
+the generalized Laguerre polynomials with the following closed form expression</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$L_n^{(\alpha)}(x) = \sum_{k=0}^n (-1)^k \binom{n &#43; \alpha}{ n - k} \frac{x^k}{k!}$$</td>
+<td style="width: 10000px; text-align: right;">(5)</td>
+</table>
+
+
+</article>
+
+
+    </div>
+
+<div class="footer">
+    
+    
+    <div class="footer-links">
+        <a href="/https:/github.com/ivan-pi">GitHub</a>
+        <a href="/posts/index.xml">RSS</a>
+    </div>
+    
+
+    
+    
+    <div class="copyright">© 2019 — Ivan Pribec — All rights reserved.</div>
+    
+
+</div>
+
+
+</body>
+
+</html>

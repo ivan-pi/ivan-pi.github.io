@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on Ivan Pribec</title>
@@ -7,10 +7,17 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© 2019 — Ivan Pribec — All rights reserved.</copyright>
-    <lastBuildDate>Sat, 15 Feb 2020 00:00:00 +0000</lastBuildDate>
-    
-	<atom:link href="/posts/index.xml" rel="self" type="application/rss+xml" />
-    
+    <lastBuildDate>Wed, 29 Dec 2021 00:00:00 +0000</lastBuildDate><atom:link href="/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Evaluating the closed form coefficients of Laguerre polynomials</title>
+      <link>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link>
+      <pubDate>Wed, 29 Dec 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid>
+      <description>Evaluating the closed form coefficients of Laguerre polynomials For some numerical applications it can be useful to work with the closed form expression for Laguerre polynomials. The closed form is given by
+ $$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$ (1)  We can evaluate the coefficients with the help of the factorial formula
+ $$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$ (2)  Since $n$ and $k$ are both integers, the coefficients are rational numbers.</description>
+    </item>
     
     <item>
       <title>Setting up a personal website using Hugo</title>
@@ -18,7 +25,7 @@
       <pubDate>Sat, 15 Feb 2020 00:00:00 +0000</pubDate>
       
       <guid>/posts/2020/02/setting-up-a-personal-website-using-hugo/</guid>
-      <description>As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).
+      <description>As many before me, I&#39;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&#39;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&#39;m saving some of these for blog posts).
 Getting back to the website was easier this time round.</description>
     </item>
     
