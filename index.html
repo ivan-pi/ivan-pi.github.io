@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta name="generator" content="Hugo 0.152.2">
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ivan Pribec | Ivan Pribec</title>
+<meta name="title" content="Ivan Pribec" />
+<meta name="description" content="" />
+<meta name="keywords" content="development,hugo,fortran,laguerre,polynomials," />
+
+
+<meta property="og:url" content="/">
+  <meta property="og:site_name" content="Ivan Pribec">
+  <meta property="og:title" content="Ivan Pribec">
+  <meta property="og:description" content="I am a Slovenian engineering student pursuing graduate studies at the Technical University of Munich, Department of Brewing and Beverage Technology in Freising. My research focuses on the use of lattice Boltzmann methods for simulation of physical phenomena related to food and beverage process engineering such as drying and multiphase flow.
+Contact 📧 ivan.pribec@tum.de
+📞 &#43;49(0)8161 71-2623
+🏢 Room 1.OG 37, iGZW (TUM RoomFinder), Google Maps Research interests: Lattice Boltzmann methods and their application to fluid dynamics, multiphase flow, mass transport, heat transfer and chemical reactions. Off-lattice Boltzmann methods Meshless methods in fluid and solid mechanics. Computational methods for the solution of partial differential equations. Mathematical modelling in life sciences. Background I received my master’s degree in chemical engineering at the Faculty of Chemisty and Chemical Technology, University of Ljubljana in the microprocess engineering group. My thesis titled “The Description of Chemical Reactions with the Lattice Boltzmann Method” was supervised by Prof. Dr. Igor Plazl and Prof. Dr. Tomaz Urbic. In the final year of my master’s I also worked shortly as a student researcher at the Parallel and Distributed Systems Laboratory at the Jozef Stefan Institute as a developer of the medusa meshless method library.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="website">
+
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Ivan Pribec">
+  <meta name="twitter:description" content="I am a Slovenian engineering student pursuing graduate studies at the Technical University of Munich, Department of Brewing and Beverage Technology in Freising. My research focuses on the use of lattice Boltzmann methods for simulation of physical phenomena related to food and beverage process engineering such as drying and multiphase flow.
+Contact 📧 ivan.pribec@tum.de
+📞 &#43;49(0)8161 71-2623
+🏢 Room 1.OG 37, iGZW (TUM RoomFinder), Google Maps Research interests: Lattice Boltzmann methods and their application to fluid dynamics, multiphase flow, mass transport, heat transfer and chemical reactions. Off-lattice Boltzmann methods Meshless methods in fluid and solid mechanics. Computational methods for the solution of partial differential equations. Mathematical modelling in life sciences. Background I received my master’s degree in chemical engineering at the Faculty of Chemisty and Chemical Technology, University of Ljubljana in the microprocess engineering group. My thesis titled “The Description of Chemical Reactions with the Lattice Boltzmann Method” was supervised by Prof. Dr. Igor Plazl and Prof. Dr. Tomaz Urbic. In the final year of my master’s I also worked shortly as a student researcher at the Parallel and Distributed Systems Laboratory at the Jozef Stefan Institute as a developer of the medusa meshless method library.">
+
+
+
+
+  <meta itemprop="name" content="Ivan Pribec">
+  <meta itemprop="description" content="I am a Slovenian engineering student pursuing graduate studies at the Technical University of Munich, Department of Brewing and Beverage Technology in Freising. My research focuses on the use of lattice Boltzmann methods for simulation of physical phenomena related to food and beverage process engineering such as drying and multiphase flow.
+Contact 📧 ivan.pribec@tum.de
+📞 &#43;49(0)8161 71-2623
+🏢 Room 1.OG 37, iGZW (TUM RoomFinder), Google Maps Research interests: Lattice Boltzmann methods and their application to fluid dynamics, multiphase flow, mass transport, heat transfer and chemical reactions. Off-lattice Boltzmann methods Meshless methods in fluid and solid mechanics. Computational methods for the solution of partial differential equations. Mathematical modelling in life sciences. Background I received my master’s degree in chemical engineering at the Faculty of Chemisty and Chemical Technology, University of Ljubljana in the microprocess engineering group. My thesis titled “The Description of Chemical Reactions with the Lattice Boltzmann Method” was supervised by Prof. Dr. Igor Plazl and Prof. Dr. Tomaz Urbic. In the final year of my master’s I also worked shortly as a student researcher at the Parallel and Distributed Systems Laboratory at the Jozef Stefan Institute as a developer of the medusa meshless method library.">
+  <meta itemprop="datePublished" content="2021-12-29T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2021-12-29T00:00:00+00:00">
+  <meta itemprop="wordCount" content="204">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  <link rel="alternate" type="application/rss+xml" href="/index.xml" title="Ivan Pribec" />
+  <style>
+  :root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #222;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-color: #01242e;
+      --heading-color: #eee;
+      --text-color: #ddd;
+      --link-color: #8cc2dd;
+      --visited-color: #8b6fcb;
+      --blockquote-color: #ccc;
+    }
+  }
+
+  body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+  }
+
+  a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  nav a {
+    margin-right: 8px;
+  }
+
+  strong,
+  b {
+    color: var(--heading-color);
+  }
+
+  button {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  time {
+    font-family: monospace;
+    font-style: normal;
+    font-size: 15px;
+  }
+
+  main {
+    line-height: 1.6;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-family: monospace;
+    padding: 2px;
+    border-radius: 3px;
+  }
+
+  blockquote {
+    border-left: 1px solid #999;
+    color: var(--blockquote-color);
+    padding-left: 20px;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 25px 0;
+    text-align: center;
+  }
+
+  .title:hover {
+    text-decoration: none;
+  }
+
+  .title h1 {
+    font-size: 1.5em;
+  }
+
+  .inline {
+    width: auto !important;
+  }
+
+  .highlight,
+  .code {
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+  }
+
+   
+  ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+  }
+
+  ul.blog-posts li {
+    display: flex;
+  }
+
+  ul.blog-posts li span {
+    flex: 0 0 130px;
+  }
+
+  ul.blog-posts li a:visited {
+    color: var(--visited-color);
+  }
+
+</style>
+
+</head>
+
+<body>
+  <header><a href="/" class="title">
+  <h2>Ivan Pribec</h2>
+</a>
+<nav>
+<a href="/posts/">blog</a>
+
+<a href="/code/">code</a>
+
+<a href="/diary/">diary</a>
+
+<a href="/now/">now</a>
+
+</nav>
+</header>
+  <main>
+<p>I am a Slovenian engineering student pursuing graduate studies at the <a href="http://lbgt.wzw.tum.de/index.php?id=5&amp;L=1">Technical University of Munich, Department of Brewing and Beverage Technology</a> in Freising. My research focuses on the use of lattice Boltzmann methods for simulation of physical phenomena related to food and beverage process engineering such as drying and multiphase flow.</p>
+<p><img src="/images/tum_garching.jpg" alt="tum_garching"></p>
+<h2 id="contact">Contact</h2>
+<address>
+  <a href="mailto:ivan.pribec@tum.de">📧 ivan.pribec@tum.de</a><br>
+  <a href="tel:+498161 71-2623">📞 +49(0)8161 71-2623</a><br>
+  <a href="https://portal.mytum.de/displayRoomMap?01.037@4226">🏢 Room 1.OG 37, iGZW (TUM RoomFinder)</a>, <a href=https://www.google.com/maps/place/48%C2%B023'57.0%22N+11%C2%B043'11.9%22E/@48.3991702,11.7177835,446m/data=!3m2!1e3!4b1!4m5!3m4!1s0x0:0x0!8m2!3d48.399155!4d11.7199752>Google Maps</a>
+</address>
+<h2 id="research-interests">Research interests:</h2>
+<ul>
+<li>Lattice Boltzmann methods and their application to fluid dynamics, multiphase flow, mass transport, heat transfer and chemical reactions.</li>
+<li>Off-lattice Boltzmann methods</li>
+<li>Meshless methods in fluid and solid mechanics.</li>
+<li>Computational methods for the solution of partial differential equations.</li>
+<li>Mathematical modelling in life sciences.</li>
+</ul>
+<h2 id="background">Background</h2>
+<p>I received my master&rsquo;s degree in chemical engineering at the Faculty of Chemisty and Chemical Technology, University of Ljubljana in the <a href="http://chemeng.fkkt.uni-lj.si/?page_id=21">microprocess engineering group</a>. My thesis titled &ldquo;The Description of Chemical Reactions with the Lattice Boltzmann Method&rdquo; was supervised by Prof. Dr. Igor Plazl and <a href="http://www.urbic.com/">Prof. Dr. Tomaz Urbic</a>. In the final year of my master&rsquo;s I also worked shortly as a student researcher at the <a href="http://www-e6.ijs.si/ParallelAndDistributedSystems/">Parallel and Distributed Systems Laboratory</a> at the Jozef Stefan Institute as a developer of the <a href="http://www-e6.ijs.si/medusa/wiki/index.php/Medusa">medusa</a> meshless method library.</p>
+<p>My full <a href="/cv/cv_ivan_pribec.pdf">Curriculum Vitae</a> is also available online.</p>
+
+
+  </main>
+  <footer>Made with <a href="https://github.com/janraasch/hugo-bearblog/">Hugo ʕ•ᴥ•ʔ Bear</a>
+</footer>
+
+  
+</body>
+
+</html>

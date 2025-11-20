@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fortran on Ivan Pribec</title>
+    <link>/tags/fortran/</link>
+    <description>Recent content in Fortran on Ivan Pribec</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 29 Dec 2021 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/tags/fortran/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Evaluating the closed form coefficients of Laguerre polynomials</title>
+      <link>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link>
+      <pubDate>Wed, 29 Dec 2021 00:00:00 +0000</pubDate>
+      <guid>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid>
+      <description>&lt;h1 id=&#34;evaluating-the-closed-form-coefficients-of-laguerre-polynomials&#34;&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;&#xA;&lt;p&gt;For some numerical applications it can be useful to work with the closed form&#xA;expression for Laguerre polynomials. The closed form is given by&lt;/p&gt;&#xA;&#xA;&lt;table style=&#34;width: 100%&#34;&gt;&#xA;&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;&#xA;&lt;td&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;&#xA;&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(1)&lt;/td&gt;&#xA;&lt;/table&gt;&#xA;&#xA;&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;&#xA;&#xA;&lt;table style=&#34;width: 100%&#34;&gt;&#xA;&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;&#xA;&lt;td&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;&#xA;&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(2)&lt;/td&gt;&#xA;&lt;/table&gt;&#xA;&#xA;&lt;p&gt;Since $n$ and $k$ are both integers, the coefficients are rational numbers.&#xA;For most computational applications we will likely only need to work with&#xA;floating point approximations of the coefficients.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

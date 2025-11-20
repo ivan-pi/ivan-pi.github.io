@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ivan Pribec</title>
+    <link>/</link>
+    <description>Recent content on Ivan Pribec</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 29 Dec 2021 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Evaluating the closed form coefficients of Laguerre polynomials</title>
+      <link>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link>
+      <pubDate>Wed, 29 Dec 2021 00:00:00 +0000</pubDate>
+      <guid>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid>
+      <description>&lt;h1 id=&#34;evaluating-the-closed-form-coefficients-of-laguerre-polynomials&#34;&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;&#xA;&lt;p&gt;For some numerical applications it can be useful to work with the closed form&#xA;expression for Laguerre polynomials. The closed form is given by&lt;/p&gt;&#xA;&#xA;&lt;table style=&#34;width: 100%&#34;&gt;&#xA;&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;&#xA;&lt;td&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;&#xA;&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(1)&lt;/td&gt;&#xA;&lt;/table&gt;&#xA;&#xA;&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;&#xA;&#xA;&lt;table style=&#34;width: 100%&#34;&gt;&#xA;&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;&#xA;&lt;td&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;&#xA;&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(2)&lt;/td&gt;&#xA;&lt;/table&gt;&#xA;&#xA;&lt;p&gt;Since $n$ and $k$ are both integers, the coefficients are rational numbers.&#xA;For most computational applications we will likely only need to work with&#xA;floating point approximations of the coefficients.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Setting up a personal website using Hugo</title>
+      <link>/posts/2020/02/setting-up-a-personal-website-using-hugo/</link>
+      <pubDate>Sat, 15 Feb 2020 00:00:00 +0000</pubDate>
+      <guid>/posts/2020/02/setting-up-a-personal-website-using-hugo/</guid>
+      <description>&lt;p&gt;As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).&lt;/p&gt;&#xA;&lt;p&gt;Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>/posts/1/01/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/posts/1/01/</guid>
+      <description>&lt;p&gt;SIMD Libraries&lt;/p&gt;&#xA;&lt;p&gt;Generic SIMD&#xA;&lt;a href=&#34;https://github.com/genericsimd/generic_simd/&#34;&gt;https://github.com/genericsimd/generic_simd/&lt;/a&gt;&#xA;&lt;a href=&#34;https://doi.org/10.1145/2568058.2568059&#34;&gt;https://doi.org/10.1145/2568058.2568059&lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;Google Highway&#xA;&lt;a href=&#34;https://google.github.io/highway/en/master/&#34;&gt;https://google.github.io/highway/en/master/&lt;/a&gt;&#xA;&lt;a href=&#34;https://github.com/google/highway&#34;&gt;https://github.com/google/highway&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>About Hugo</title>
+      <link>/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/about/</guid>
+      <description>&lt;p&gt;Hugo is the &lt;strong&gt;world’s fastest framework for building websites&lt;/strong&gt;. It is written in Go.&lt;/p&gt;&#xA;&lt;p&gt;It makes use of a variety of open source projects including:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/russross/blackfriday&#34;&gt;https://github.com/russross/blackfriday&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/alecthomas/chroma&#34;&gt;https://github.com/alecthomas/chroma&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/muesli/smartcrop&#34;&gt;https://github.com/muesli/smartcrop&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/spf13/cobra&#34;&gt;https://github.com/spf13/cobra&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/spf13/viper&#34;&gt;https://github.com/spf13/viper&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;Learn more and contribute on &lt;a href=&#34;https://github.com/gohugoio&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Code development</title>
+      <link>/code/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/code/</guid>
+      <description>&lt;p&gt;In my free time I like to work on scientific coding projects in Fortran.&lt;/p&gt;&#xA;&lt;h2 id=&#34;fortran-interfaces&#34;&gt;Fortran interfaces&lt;/h2&gt;&#xA;&lt;p&gt;Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic &lt;code&gt;iso_c_binding&lt;/code&gt; module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C++ and vice versa.&lt;/p&gt;&#xA;&lt;p&gt;Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Contact</title>
+      <link>/contact/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/contact/</guid>
+      <description>&lt;p&gt;Contact me!&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Diary</title>
+      <link>/diary/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/diary/</guid>
+      <description>&lt;p&gt;A chronological collection of things I&amp;rsquo;ve found interesting.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2025-11-20&#34;&gt;2025-11-20&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://dev.to/frosnerd/comparing-openblas-and-accelerate-on-apple-silicon-for-blas-routines-2pb9&#34;&gt;Comparing OpenBLAS and Accelerate on Apple Silicon for BLAS Routines | Frank Rosner&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://tylerseanrau.github.io/BenchAndTest/&#34;&gt;Benchmarking and Testing | Tyler Sean Rau&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://www.intel.com/content/www/us/en/developer/articles/technical/openmp-simd-for-inclusiveexclusive-scans.html&#34;&gt;OpenMP* SIMD for Inclusive/Exclusive Scans&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://blogs.fau.de/hager/files/2010/07/numet_hager_08.pdf&#34;&gt;Effiziente Nutzung von Hochleistungsrechnern in der numerischen Strömungsmechanik | Dr. Georg Hager&lt;/a&gt; (PDF, 599 KB)&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://dl.acm.org/doi/pdf/10.1145/29873.29875&#34;&gt;Automatic Translation of FORTRAN Programs to Vector Form | Randy Allen and Ken Kennedy&lt;/a&gt; (PDF, 2.8 MB)&lt;/li&gt;&#xA;&lt;li&gt;Bik, A. J., Tian, X., &amp;amp; Girkar, M. B. (2006). Multimedia vectorization of floating‐point MIN/MAX reductions. Concurrency and Computation: Practice and Experience, 18(9), 997-1007. &lt;a href=&#34;https://doi.org/10.1002/cpe.1009&#34;&gt;https://doi.org/10.1002/cpe.1009&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://doku.lrz.de/files/11497000/11497017/8/1745835328413/3_Vectorization.pdf&#34;&gt;Vectorization Essentials | Intel Software&lt;/a&gt; (PDF, 1913 KB)&lt;/li&gt;&#xA;&lt;li&gt;Karp, A. H., &amp;amp; Babb, R. B. (1988). A comparison of 12 parallel Fortran dialects. Ieee Software, 5(5), 52-67. &lt;a href=&#34;https://doi.org/10.1109/52.7943&#34;&gt;https://doi.org/10.1109/52.7943&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;Oraji, Y. M., Hück, A., &amp;amp; Bischof, C. (2025, November). Extending MPI Correctness Benchmarking to the Fortran Language. In Proceedings of the SC&#39;25 Workshops of the International Conference for High Performance Computing, Networking, Storage and Analysis (pp. 244-248). &lt;a href=&#34;https://doi.org/10.1145/3731599.3767366&#34;&gt;https://doi.org/10.1145/3731599.3767366&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://www.ixpug.org/images/docs/isc_2024/Investigating_the_perfomance_of_LLVM-based_IFX.pdf&#34;&gt;Investigating the performance of LLVM- based Intel Fortran Complier (ifx) | Dhani Ruhela&lt;/a&gt; (PDF, 596 KB)&lt;/li&gt;&#xA;&lt;li&gt;Rouson, D., Dibba, B., Rasmussen, K., Richardson, B., Torres, D., Zhang, Y., &amp;hellip; &amp;amp; Shende, S. (2024). Just Write Fortran: Experiences with a Language-Based Alternative to MPI+ X. &lt;a href=&#34;https://doi.org/10.25344/S4H88D&#34;&gt;https://doi.org/10.25344/S4H88D&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;2025-11-19&#34;&gt;2025-11-19&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://portal.nersc.gov/project/sparse/butterflypack/index.html&#34;&gt;ButterflyPACK: Fast PDE solvers and transforms | NERSC&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;</description>
+    </item>
+    <item>
+      <title>What I&#39;m doing now</title>
+      <link>/now/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/now/</guid>
+      <description>&lt;p&gt;This is my &lt;a href=&#34;https://sivers.org/nowff&#34;&gt;/now&lt;/a&gt; page, inspired by Derek Sivers and others at &lt;a href=&#34;https://nownownow.com/&#34;&gt;nownownow.com&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;(Last updated on 17/02/2019.)&lt;/p&gt;&#xA;&lt;p&gt;At university I’m currently working on a project report on pasta drying, analyzing CT datasets of dry pasta, and writing a scientific publication on the same topic. Sounds &lt;em&gt;dry&lt;/em&gt;, but it’s not, really. ;)&lt;/p&gt;&#xA;&lt;p&gt;Outside of work I’m currently:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Creating my personal website.&lt;/li&gt;&#xA;&lt;li&gt;Adding finishing touches to the Modern Fortran NLopt wrapper. I posted about it recently on the Intel Fortran Forum.&lt;/li&gt;&#xA;&lt;li&gt;Tinkering with PDEONE.&lt;/li&gt;&#xA;&lt;/ul&gt;</description>
+    </item>
+  </channel>
+</rss>
