@@ -1,17 +1,28 @@
-<!DOCTYPE html>
-<html lang="en-us">
-
-<head>
-  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Code development | Ivan Pribec</title>
-<meta name="title" content="Code development" />
-<meta name="description" content="In my free time I like to work on scientific coding projects in Fortran.
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Code development&nbsp;|&nbsp;Ivan Pribec</title>
+<meta
+  name="title"
+  content="Code development"
+/>
+<meta
+  name="description"
+  content="In my free time I like to work on scientific coding projects in Fortran.
 Fortran interfaces
 Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic iso_c_binding module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C&#43;&#43; and vice versa.
-Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:" />
-<meta name="keywords" content="" />
+Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:"
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+
+  <meta name="author" content="Ivan Pribec" />
+
+
 
 
 <meta property="og:url" content="/code/">
@@ -26,11 +37,13 @@ Using the C-Fortran interoperability I have written Fortran interfaces for the f
 
 
 
+
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Code development">
   <meta name="twitter:description" content="In my free time I like to work on scientific coding projects in Fortran.
 Fortran interfaces Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic iso_c_binding module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C&#43;&#43; and vice versa.
 Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:">
+
 
 
 
@@ -42,181 +55,65 @@ Using the C-Fortran interoperability I have written Fortran interfaces for the f
   <meta itemprop="wordCount" content="319">
 <meta name="referrer" content="no-referrer-when-downgrade" />
 
-  <style>
-  :root {
-    --width: 720px;
-    --font-main: Verdana, sans-serif;
-    --font-secondary: Verdana, sans-serif;
-    --font-scale: 1em;
-    --background-color: #fff;
-    --heading-color: #222;
-    --text-color: #444;
-    --link-color: #3273dc;
-    --visited-color: #8b6fcb;
-    --blockquote-color: #222;
-  }
+    
+    
+    
+    <link href="/bundle.min.css" rel="stylesheet" />
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background-color: #01242e;
-      --heading-color: #eee;
-      --text-color: #ddd;
-      --link-color: #8cc2dd;
-      --visited-color: #8b6fcb;
-      --blockquote-color: #ccc;
-    }
-  }
+    
 
-  body {
-    font-family: var(--font-secondary);
-    font-size: var(--font-scale);
-    margin: auto;
-    padding: 20px;
-    max-width: var(--width);
-    text-align: left;
-    background-color: var(--background-color);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    line-height: 1.5;
-    color: var(--text-color);
-  }
+    
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: var(--font-main);
-    color: var(--heading-color);
-  }
 
-  a {
-    color: var(--link-color);
-    cursor: pointer;
-    text-decoration: none;
-  }
-
-  a:hover {
-    text-decoration: underline;
-  }
-
-  nav a {
-    margin-right: 8px;
-  }
-
-  strong,
-  b {
-    color: var(--heading-color);
-  }
-
-  button {
-    margin: 0;
-    cursor: pointer;
-  }
-
-  time {
-    font-family: monospace;
-    font-style: normal;
-    font-size: 15px;
-  }
-
-  main {
-    line-height: 1.6;
-  }
-
-  table {
-    width: 100%;
-  }
-
-  hr {
-    border: 0;
-    border-top: 1px dashed;
-  }
-
-  img {
-    max-width: 100%;
-  }
-
-  code {
-    font-family: monospace;
-    padding: 2px;
-    border-radius: 3px;
-  }
-
-  blockquote {
-    border-left: 1px solid #999;
-    color: var(--blockquote-color);
-    padding-left: 20px;
-    font-style: italic;
-  }
-
-  footer {
-    padding: 25px 0;
-    text-align: center;
-  }
-
-  .title:hover {
-    text-decoration: none;
-  }
-
-  .title h1 {
-    font-size: 1.5em;
-  }
-
-  .inline {
-    width: auto !important;
-  }
-
-  .highlight,
-  .code {
-    border-radius: 3px;
-    margin-block-start: 1em;
-    margin-block-end: 1em;
-    overflow-x: auto;
-  }
-
-   
-  ul.blog-posts {
-    list-style-type: none;
-    padding: unset;
-  }
-
-  ul.blog-posts li {
-    display: flex;
-  }
-
-  ul.blog-posts li span {
-    flex: 0 0 130px;
-  }
-
-  ul.blog-posts li a:visited {
-    color: var(--visited-color);
-  }
-
-</style>
-
+    
 </head>
 
-<body>
-  <header><a href="/" class="title">
-  <h2>Ivan Pribec</h2>
-</a>
-<nav>
-<a href="/posts/">blog</a>
+  <body>
+    <header>
+      <nav>
+  <a
+    href="/"
+    
+    >home</a
+  >
 
-<a href="/code/">code</a>
+  <a
+    href="/posts/"
+    
+    >blog</a
+  >
 
-<a href="/diary/">diary</a>
+  <a
+    href="/code/"
+    
+    >code</a
+  >
 
-<a href="/now/">now</a>
+  <a
+    href="/diary/"
+    
+    >diary</a
+  >
+
+  <a
+    href="/now/"
+    
+    >now</a
+  >
+
 
 </nav>
-</header>
-  <main>
+    <h1>Code development</h1>
 
-<content>
-  <p>In my free time I like to work on scientific coding projects in Fortran.</p>
+
+    </header>
+    <main>
+      
+  
+  
+  
+  <content>
+    <p>In my free time I like to work on scientific coding projects in Fortran.</p>
 <h2 id="fortran-interfaces">Fortran interfaces</h2>
 <p>Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic <code>iso_c_binding</code> module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C++ and vice versa.</p>
 <p>Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:</p>
@@ -234,19 +131,20 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <li><a href="https://github.com/ivan-pi/fortran_lsp">Least squares solvers from Lawson &amp; Hanson</a> - This package contains the routines from the book <em>Solving least squares problems</em> by Lawson and Hanson (1995). Most of the routines date back to the 1974 version of the book and were developed for use at the NASA Jet Propulsion Laboratory in California, Pasadena. I have tried to modernize the interfaces of most of the subroutines. The non-negative least squares solver <code>nnls</code> appears also in <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.nnls.html"><code>scipy.optimize.nnls</code></a>.</li>
 </ul>
 
-</content>
-
-
-
-<p>
+  </content>
   
-</p>
 
-  </main>
-  <footer>Made with <a href="https://github.com/janraasch/hugo-bearblog/">Hugo ʕ•ᴥ•ʔ Bear</a>
-</footer>
+    </main>
+    <footer>
+      
 
-  
+      
+  <span>© 2025 — Ivan Pribec — All rights reserved.</span>
+
+
+
+    </footer>
+
+    
 </body>
-
 </html>

@@ -1,0 +1,10 @@
+/* Code blocks */
+pre code {
+    font-size: 0.4rem;   /* or 14px, etc. */
+}
+
+/* Inline code */
+code {
+    font-size: 0.9rem;
+    padding: 0.15em 0.25em;
+}

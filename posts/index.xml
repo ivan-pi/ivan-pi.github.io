@@ -1,33 +1,946 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Posts on Ivan Pribec</title>
+    <title>Ivan Pribec</title>
     <link>/posts/</link>
-    <description>Recent content in Posts on Ivan Pribec</description>
-    <generator>Hugo</generator>
+    <description>Recent content on Ivan Pribec</description>
+    <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 29 Dec 2021 00:00:00 +0000</lastBuildDate>
+    <copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright>
+    <lastBuildDate>Sun, 23 Nov 2025 00:00:00 +0100</lastBuildDate>
     <atom:link href="/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Measuring the performance of the norm2-intrinsic</title>
+      <link>/posts/2025/11/measuring-the-performance-of-the-norm2-intrinsic/</link>
+      <pubDate>Sun, 23 Nov 2025 00:00:00 +0100</pubDate>
+      <guid>/posts/2025/11/measuring-the-performance-of-the-norm2-intrinsic/</guid>
+      <description>&lt;p&gt;A couple months ago, Jean-Christophe Loiseau from Art et Métiers Institute of Technology published a &lt;a href=&#34;https://loiseaujc.github.io/posts/blog-title/jacobi_experiments.html&#34;&gt;very nice article&lt;/a&gt; about speeding-up the Jacobi method in Fortran using multi-threading.
+If you are interested in Fortran or you&amp;rsquo;re a student in scientific computing, I can highly recommend reading it.&lt;/p&gt;
+&lt;p&gt;One thing that piqued my interest in the blog was the following sentence,&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Either way [of computing the two-norm] is fine, &lt;code&gt;norm2&lt;/code&gt; is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>A couple months ago, Jean-Christophe Loiseau from Art et Métiers Institute of Technology published a <a href="https://loiseaujc.github.io/posts/blog-title/jacobi_experiments.html">very nice article</a> about speeding-up the Jacobi method in Fortran using multi-threading.
+If you are interested in Fortran or you&rsquo;re a student in scientific computing, I can highly recommend reading it.</p>
+<p>One thing that piqued my interest in the blog was the following sentence,</p>
+<blockquote>
+<p>Either way [of computing the two-norm] is fine, <code>norm2</code> is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.</p>
+</blockquote>
+<p>The two ways which are discussed are using the intrinsic function, i.e. <code>norm2(u - v)</code>, or using a <code>do concurrent</code> loop construct:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span>	<span style="color:#8839ef">real</span>(dp) <span style="color:#d20f39">::</span> l2_norm
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    l2_norm <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0.0_dp</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">do</span> <span style="color:#8839ef">concurrent</span>(i<span style="color:#04a5e5;font-weight:bold">=</span><span style="color:#fe640b">2</span>:nx<span style="color:#04a5e5;font-weight:bold">-</span><span style="color:#fe640b">1</span>, j<span style="color:#04a5e5;font-weight:bold">=</span><span style="color:#fe640b">2</span>:ny<span style="color:#04a5e5;font-weight:bold">-</span><span style="color:#fe640b">1</span>) reduce(<span style="color:#04a5e5;font-weight:bold">+</span>:l2_norm)
+</span></span><span style="display:flex;"><span>        l2_norm <span style="color:#04a5e5;font-weight:bold">=</span> l2_norm <span style="color:#04a5e5;font-weight:bold">+</span> (u(i, j) <span style="color:#04a5e5;font-weight:bold">-</span> v(i, j))<span style="color:#04a5e5;font-weight:bold">**</span><span style="color:#fe640b">2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">enddo</span>
+</span></span><span style="display:flex;"><span>    l2_norm <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">sqrt</span>(l2_norm)</span></span></code></pre></div>
+<p>In the past I&rsquo;ve noticed that despite their built-in status, intrinsic functions are not always optimized to the degree you thought they would be. Hager and Wellein summarize this nicely when they say</p>
+<blockquote>
+<p>It must be understood that compilers can be surprisingly smart and stupid at the same time.
+A common statement in discussions about compiler capabilities is &ldquo;The compiler be able to figure that out.&rdquo;
+This is often enough a false assumtion.</p>
+</blockquote>
+<p>At this point I must say that writing an accurate <code>norm2</code> function without undue underflows or overflows is surprisingly hard work.
+I won&rsquo;t go into details about the different algorithms, you can peruse the links in the reference section below if you want to.</p>
+<p>Instead, we&rsquo;ll be looking at the performance of the &ldquo;simple loop&rdquo; algorithm, expressed using different language constructs. For simplicity we&rsquo;ll look at the two-norm of an array of size 2000^2 (roughly 30.5 MB) filled with random values.</p>
+<p>Before we start looking at different Fortran implementations, let&rsquo;s select some performance baselines.
+Besides the <code>norm2</code> intrinsic function introduces in Fortran 2008, we can also measure the <code>DNRM2</code> functions that are provided in different BLAS libraries.
+For more variety I&rsquo;ve also prepared a 2-norm function using the Eigen C++ library:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#include</span> <span style="color:#9ca0b0;font-weight:bold;font-style:italic">&lt;Eigen/Dense&gt;</span><span style="color:#9ca0b0;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">extern</span> <span style="color:#40a02b">&#34;C&#34;</span> <span style="color:#d20f39">double</span> norm2_eigen(<span style="color:#d20f39">int</span> n, <span style="color:#8839ef">const</span> <span style="color:#d20f39">double</span> <span style="color:#04a5e5;font-weight:bold">*</span>x)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	assert(n <span style="color:#04a5e5;font-weight:bold">&gt;=</span> <span style="color:#fe640b">0</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">if</span> (n <span style="color:#04a5e5;font-weight:bold">==</span> <span style="color:#fe640b">0</span> <span style="color:#04a5e5;font-weight:bold">||</span> x <span style="color:#04a5e5;font-weight:bold">==</span> <span style="color:#8839ef">nullptr</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#8839ef">return</span> <span style="color:#fe640b">0.0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Eigen<span style="color:#04a5e5;font-weight:bold">::</span>Map<span style="color:#04a5e5;font-weight:bold">&lt;</span><span style="color:#8839ef">const</span> Eigen<span style="color:#04a5e5;font-weight:bold">::</span>VectorXd<span style="color:#04a5e5;font-weight:bold">&gt;</span> v(x, n);
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">return</span> v.norm();
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<p>For the tests below I&rsquo;ll be using an Apple M2 Pro CPU.
+I&rsquo;m using gfortran 15.2 as my main Fortran compiler and the preinstalled Apple clang 17 compiler for C++.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Library</th>
+          <th>Elapsed (ms)</th>
+          <th>Bandwidth (GB/s)</th>
+          <th>Different bits</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>norm2</code></td>
+          <td>4.9</td>
+          <td>6.1</td>
+          <td>5</td>
+      </tr>
+      <tr>
+          <td><code>norm2_eigen</code></td>
+          <td>0.89</td>
+          <td>33.1</td>
+          <td>2</td>
+      </tr>
+      <tr>
+          <td>Apple Accelerate</td>
+          <td>1.2</td>
+          <td>22.5</td>
+          <td>2</td>
+      </tr>
+      <tr>
+          <td>OpenBLAS</td>
+          <td>4.9</td>
+          <td>6.0</td>
+          <td>4</td>
+      </tr>
+      <tr>
+          <td>ArmPL</td>
+          <td>2.4</td>
+          <td>12.2</td>
+          <td>3</td>
+      </tr>
+  </tbody>
+</table>
+<p>As we can see from the table above, there is quite a spread in the results.
+This might be due to the use of different algorithms, but also due to quality of the generated code.
+The use of different algorithms, or as it may be simply, different order of evaluation,
+can be inferred from the number of different bits compared to a value computed using quadruple precision:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">integer</span>, <span style="color:#8839ef">parameter</span> <span style="color:#d20f39">::</span> qp <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">selected_real_kind</span>(<span style="color:#fe640b">32</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">real</span>(dp) <span style="color:#d20f39">::</span> r0
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>r0 <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">norm2</span>(<span style="color:#8839ef">real</span>(u,<span style="color:#04a5e5">kind</span><span style="color:#04a5e5;font-weight:bold">=</span>qp))</span></span></code></pre></div>
+<p>Note that the Fortran standard only requires <code>norm2</code> to return a <em>processor-dependent</em>
+approximation of the 2-norm. (In Fortran jargon, processor is the name of the compiler or interpreter.)</p>
+<p>What to make of these results? Is this the top performance which can be reached?
+Assuming the naive simple loop algorithm,</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">do</span> i <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>, n
+</span></span><span style="display:flex;"><span>	nrm <span style="color:#04a5e5;font-weight:bold">=</span> nrm <span style="color:#04a5e5;font-weight:bold">+</span> u(i)<span style="color:#04a5e5;font-weight:bold">**</span><span style="color:#fe640b">2</span>
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span> <span style="color:#8839ef">do</span>
+</span></span><span style="display:flex;"><span>nrm <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">sqrt</span>(nrm)</span></span></code></pre></div>
+<p>this operation tends to be memory intensive.
+For each new element loaded we perform two operations (one addition and one multiplication).
+Assuming 64-bit doubles, this gives a code balance of 4 bytes / flop.</p>
+<h2 id="unrolling-and-wide">Unrolling and wide</h2>
+<p class="notice">
+  <em>Comment:</em> one downside of <code>DNRM2</code> is it assumed the input is a contiguous 1-d vector.
+This means if want to only calculate the two-norm over the interior region the compiler will probably perform copy-in/copy-out.
+</p>
+
+<p>Maybe you know the phrase: &ldquo;Never look a gift hourse in the mouth&rdquo;.
+At the end of the day, we should all be grateful to have awesome compilers like gfortran and flang.</p>
+<p>Since compilers evolve over time, remember to take these results with a grain of salt.
+Maybe the compiler of the future you are using has already solved some of these issues, at least I strongly wish so.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://doi.org/10.1145/355769.355771">Blue, J. L. (1978). A portable Fortran program to find the Euclidean norm of a vector. ACM Transactions on Mathematical Software (TOMS), 4(1), 15-23.</a></li>
+<li><a href="https://doi.org/10.1145/3134441">Hanson, R. J., &amp; Hopkins, T. (2017). Remark on algorithm 539: A modern Fortran reference implementation for carefully computing the Euclidean norm. ACM Transactions on Mathematical Software (TOMS), 44(3), 1-23.</a></li>
+<li><a href="https://doi.org/10.1145/3061665">Anderson, E. (2017). Algorithm 978: Safe scaling in the level 1 BLAS. ACM Transactions on Mathematical Software (TOMS), 44(1), 1-28.</a></li>
+</ul>
+<p>There are also newer works investigating the use of double-word arithmetic:</p>
+<ul>
+<li><a href="https://doi.org/10.1007/978-3-030-86653-2_7">Harayama, T., Kudo, S., Mukunoki, D., Imamura, T., &amp; Takahashi, D. (2021, September). A Rapid Euclidean Norm Calculation Algorithm that Reduces Overflow and Underflow. In International Conference on Computational Science and Its Applications (pp. 95-110). Cham: Springer International Publishing.</a></li>
+<li><a href="https://doi.org/10.1145/3568672">Lefèvre, V., Louvet, N., Muller, J. M., Picot, J., &amp; Rideau, L. (2023). Accurate calculation of Euclidean norms using double-word arithmetic. ACM Transactions on Mathematical Software, 49(1), 1-34.</a></li>
+</ul>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Is the Humble For-Loop a Good Way to Search an Array?</title>
+      <link>/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</link>
+      <pubDate>Sat, 22 Nov 2025 00:00:00 +0100</pubDate>
+      <guid>/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</guid>
+      <description>&lt;p&gt;While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:&lt;/p&gt;
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;C devs will tell you this is peak API and Programming Languages design,&lt;br&gt;&lt;br&gt;And nothing better has been invented since 1972. &lt;a href=&#34;https://t.co/mqELKMVEOb&#34;&gt;pic.twitter.com/mqELKMVEOb&lt;/a&gt;&lt;/p&gt;&amp;mdash; Dmitrii Kovanikov (@ChShersh) &lt;a href=&#34;https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw&#34;&gt;November 20, 2025&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
+&lt;p&gt;This got me wondering: how fast &lt;em&gt;are&lt;/em&gt; &amp;ldquo;modern&amp;rdquo; alternatives?&lt;/p&gt;
+&lt;h2 id=&#34;searching-for-an-element-in-c&#34;&gt;Searching for an element in C++&lt;/h2&gt;
+&lt;p&gt;One of the C++ proponents in the thread suggested the following &amp;ldquo;ultra-modern&amp;rdquo; solution using
+C++23 &lt;a href=&#34;https://en.cppreference.com/w/cpp/ranges/enumerate_view.html&#34;&gt;&lt;code&gt;std::views::enumerate&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">C devs will tell you this is peak API and Programming Languages design,<br><br>And nothing better has been invented since 1972. <a href="https://t.co/mqELKMVEOb">pic.twitter.com/mqELKMVEOb</a></p>&mdash; Dmitrii Kovanikov (@ChShersh) <a href="https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw">November 20, 2025</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>This got me wondering: how fast <em>are</em> &ldquo;modern&rdquo; alternatives?</p>
+<h2 id="searching-for-an-element-in-c">Searching for an element in C++</h2>
+<p>One of the C++ proponents in the thread suggested the following &ldquo;ultra-modern&rdquo; solution using
+C++23 <a href="https://en.cppreference.com/w/cpp/ranges/enumerate_view.html"><code>std::views::enumerate</code></a>:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span>std<span style="color:#04a5e5;font-weight:bold">::</span>optional<span style="color:#04a5e5;font-weight:bold">&lt;</span>size_t<span style="color:#04a5e5;font-weight:bold">&gt;</span> find(std<span style="color:#04a5e5;font-weight:bold">::</span>span<span style="color:#04a5e5;font-weight:bold">&lt;</span><span style="color:#8839ef">const</span> <span style="color:#d20f39">int</span><span style="color:#04a5e5;font-weight:bold">&gt;</span> items, <span style="color:#d20f39">int</span> x) {
+</span></span><span style="display:flex;"><span>	<span style="color:#8839ef">for</span> (<span style="color:#8839ef">auto</span> [i, value] <span style="color:#04a5e5;font-weight:bold">:</span> std<span style="color:#04a5e5;font-weight:bold">::</span>views<span style="color:#04a5e5;font-weight:bold">::</span>enumerate(items)) {
+</span></span><span style="display:flex;"><span>		<span style="color:#8839ef">if</span> (value <span style="color:#04a5e5;font-weight:bold">==</span> x) <span style="color:#8839ef">return</span> i;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#8839ef">return</span> std<span style="color:#04a5e5;font-weight:bold">::</span>nullopt;
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<p>I&rsquo;m a big fan of structured bindings available since C++17. They can be used to write very clean code.</p>
+<p>I didn&rsquo;t know about enumerate, but some quick searching <a href="https://www.reedbeta.com/blog/python-like-enumerate-in-cpp17/">showed</a> that an <code>enumerate</code>-like mechanism was possible already in C++17.
+It is nice to find out this is now part of the latest standard.</p>
+<p>One reason for using <a href="https://en.cppreference.com/w/cpp/utility/optional.html"><code>std::optional</code></a> for the return value is that you can use the full range of <code>size_t</code> for the returned index.
+In the C approach, an empty array or absence of the item would be indicated by a negative value.
+This implies the use of a signed integer type for the result, which limits the range.
+The difference matters if you need to search more than <code>2^31 - 1</code> elements.
+In the types of problems I deal with, this wouldn&rsquo;t be a problem.</p>
+<p>The second benefit of <code>std::optional</code> is that the result can be used as a boolean:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#8839ef">if</span> (<span style="color:#8839ef">auto</span> res <span style="color:#04a5e5;font-weight:bold">=</span> find(items,<span style="color:#fe640b">42</span>)) {
+</span></span><span style="display:flex;"><span>	std<span style="color:#04a5e5;font-weight:bold">::</span>cout <span style="color:#04a5e5;font-weight:bold">&lt;&lt;</span> <span style="color:#40a02b">&#34;found element 42 at index &#34;</span> <span style="color:#04a5e5;font-weight:bold">&lt;&lt;</span> <span style="color:#04a5e5;font-weight:bold">*</span>res <span style="color:#04a5e5;font-weight:bold">&lt;&lt;</span> <span style="color:#40a02b">&#39;\n&#39;</span>;
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<p>The index contained in the <code>std::optional</code> class template is then accessed using the familiar dereference operator.</p>
+<p>With the C-like API you&rsquo;d need to store the result before using it in one of two ways:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">// 1. store result and check condition
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span><span style="color:#8839ef">auto</span> idx <span style="color:#04a5e5;font-weight:bold">=</span> find(items,<span style="color:#fe640b">10000</span>,<span style="color:#fe640b">42</span>);
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">if</span> (idx <span style="color:#04a5e5;font-weight:bold">&gt;=</span> <span style="color:#fe640b">0</span>) { <span style="color:#9ca0b0;font-style:italic">/* ... */</span> }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">// 2. using C++17 init-statement
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span><span style="color:#8839ef">if</span> (<span style="color:#8839ef">auto</span> idx <span style="color:#04a5e5;font-weight:bold">=</span> find(items,<span style="color:#fe640b">10000</span>,<span style="color:#fe640b">42</span>); idx <span style="color:#04a5e5;font-weight:bold">&gt;=</span> <span style="color:#fe640b">0</span>) { <span style="color:#9ca0b0;font-style:italic">/* ... */</span> }</span></span></code></pre></div>
+<p>Both are more verbose than using <code>std::optional</code>, and it&rsquo;s easy to introduce mistakes.
+If we accidentally use <code>idx</code> as the condition, it will get converted to a boolean!</p>
+<p>If we limit ourselves to C++20, there are a couple of other idiomatic alternatives.
+The first would be the classic iterator based approach:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#8839ef">template</span><span style="color:#04a5e5;font-weight:bold">&lt;</span><span style="color:#8839ef">class</span> <span style="color:#df8e1d">Iter</span>, <span style="color:#8839ef">class</span> <span style="color:#df8e1d">T</span><span style="color:#04a5e5;font-weight:bold">&gt;</span>
+</span></span><span style="display:flex;"><span>Iter find_iter(Iter begin, Iter end, <span style="color:#8839ef">const</span> T<span style="color:#04a5e5;font-weight:bold">&amp;</span> x) {
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">for</span> (Iter it <span style="color:#04a5e5;font-weight:bold">=</span> begin; it <span style="color:#04a5e5;font-weight:bold">!=</span> end; <span style="color:#04a5e5;font-weight:bold">++</span>it) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8839ef">if</span> (<span style="color:#04a5e5;font-weight:bold">*</span>it <span style="color:#04a5e5;font-weight:bold">==</span> x) <span style="color:#8839ef">return</span> it;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">return</span> end;
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<p>Another option is to use a range-based for loop:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#8839ef">template</span><span style="color:#04a5e5;font-weight:bold">&lt;</span><span style="color:#8839ef">class</span> <span style="color:#df8e1d">T</span><span style="color:#04a5e5;font-weight:bold">&gt;</span>
+</span></span><span style="display:flex;"><span>std<span style="color:#04a5e5;font-weight:bold">::</span>optional<span style="color:#04a5e5;font-weight:bold">&lt;</span>std<span style="color:#04a5e5;font-weight:bold">::</span>size_t<span style="color:#04a5e5;font-weight:bold">&gt;</span> find_rbfor(std<span style="color:#04a5e5;font-weight:bold">::</span>span<span style="color:#04a5e5;font-weight:bold">&lt;</span><span style="color:#8839ef">const</span> T<span style="color:#04a5e5;font-weight:bold">&gt;</span> items, <span style="color:#8839ef">const</span> T<span style="color:#04a5e5;font-weight:bold">&amp;</span> x) {
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">for</span> (<span style="color:#8839ef">const</span> T<span style="color:#04a5e5;font-weight:bold">&amp;</span> <span style="color:#04a5e5">v</span> : items) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8839ef">if</span> (v <span style="color:#04a5e5;font-weight:bold">==</span> x) <span style="color:#8839ef">return</span> std<span style="color:#04a5e5;font-weight:bold">::</span>distance(items.data(), <span style="color:#04a5e5;font-weight:bold">&amp;</span>v);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">return</span> std<span style="color:#04a5e5;font-weight:bold">::</span>nullopt;
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<p>We could also use the STL <code>std::find</code> algorithm and avoid looping entirely:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#8839ef">template</span><span style="color:#04a5e5;font-weight:bold">&lt;</span><span style="color:#8839ef">class</span> <span style="color:#df8e1d">T</span><span style="color:#04a5e5;font-weight:bold">&gt;</span>
+</span></span><span style="display:flex;"><span>std<span style="color:#04a5e5;font-weight:bold">::</span>optional<span style="color:#04a5e5;font-weight:bold">&lt;</span>std<span style="color:#04a5e5;font-weight:bold">::</span>size_t<span style="color:#04a5e5;font-weight:bold">&gt;</span> find_find(std<span style="color:#04a5e5;font-weight:bold">::</span>span<span style="color:#04a5e5;font-weight:bold">&lt;</span><span style="color:#8839ef">const</span> T<span style="color:#04a5e5;font-weight:bold">&gt;</span> items, <span style="color:#8839ef">const</span> T<span style="color:#04a5e5;font-weight:bold">&amp;</span> x) {
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">auto</span> it <span style="color:#04a5e5;font-weight:bold">=</span> std<span style="color:#04a5e5;font-weight:bold">::</span>ranges<span style="color:#04a5e5;font-weight:bold">::</span>find(items, x);
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">if</span> (it <span style="color:#04a5e5;font-weight:bold">==</span> items.end()) <span style="color:#8839ef">return</span> std<span style="color:#04a5e5;font-weight:bold">::</span>nullopt;
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">return</span> std<span style="color:#04a5e5;font-weight:bold">::</span>ranges<span style="color:#04a5e5;font-weight:bold">::</span>distance(items.begin(), it);
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<p>This illustrates one of the challenges I personally face with C++: there are often many ways to solve the same problem.
+As long as the code works correctly and the client code remains clean, any of the implementations will do. Still, it takes time and experience to develop a good intuition for which approach is best.
+Since I only use C++ sporadically, I get lost in the options easily.</p>
+<p>API elegance aside, performance often tells a different story.</p>
+<h2 id="searching-a-double-array">Searching a <code>double</code> array</h2>
+<p>Now when it comes to performance, things are not as straightforward.
+Most CPUs today have some level of SIMD capabilities and it would be nice to know
+if they are used.
+For this purpose I prepared a micro-benchmark using the Google Benchmark framework.
+The benchmark can be found in my <a href="https://codeberg.org/ivan-pi/shed/src/branch/main/perf">&ldquo;shed&rdquo; of code snippets</a>.</p>
+<p>For the sake of the experiment, we&rsquo;ll scan an array of doubles of size 32768 (<code>2^15</code>), searching for the last element.
+The resulting time needed is measured on an Apple M2 Pro.</p>
+<p>Using GCC 15.2 I got:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Variant</th>
+          <th>Time (ns)</th>
+          <th>Bandwidth (GiB/s)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>C-like</td>
+          <td>5036</td>
+          <td>50.0</td>
+      </tr>
+      <tr>
+          <td>Iterators</td>
+          <td>10084</td>
+          <td>24.6</td>
+      </tr>
+      <tr>
+          <td>Range-based for</td>
+          <td>10705</td>
+          <td>24.2</td>
+      </tr>
+      <tr>
+          <td><code>find</code> algorithm</td>
+          <td>9847</td>
+          <td>25.0</td>
+      </tr>
+  </tbody>
+</table>
+<p>Using Apple clang version 17 I got:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Variant</th>
+          <th>Time (ns)</th>
+          <th>Bandwidth (GiB/s)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>C-like</td>
+          <td>10342</td>
+          <td>24.0</td>
+      </tr>
+      <tr>
+          <td>Iterators</td>
+          <td>9656</td>
+          <td>25.4</td>
+      </tr>
+      <tr>
+          <td>Range-based for</td>
+          <td>10443</td>
+          <td>23.6</td>
+      </tr>
+      <tr>
+          <td><code>find</code> algorithm</td>
+          <td>10074</td>
+          <td>24.6</td>
+      </tr>
+  </tbody>
+</table>
+<p>In both cases I compiled the benchmark driver with <code>-O3 -mcpu=native</code>.
+If you&rsquo;re not interested in assembly dumps, feel free to skim through the next few paragraphs.</p>
+<p>As we can see, with gcc the C-like loop is the fastest.
+Looking into the generated assembly in <a href="https://godbolt.org/z/9v9oTPbM1">Compiler Explorer</a>,
+the C-like variant in GCC gives the following innermost loop:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>.L7:
+        add     v29.4s, v29.4s, v27.4s
+        cmp     x3, x2
+        beq     .L34
+.L9:
+        ldp     q31, q30, [x2], 32
+        fcmeq   v31.2d, v31.2d, v28.2d
+        fcmeq   v30.2d, v30.2d, v28.2d
+        orr     v31.16b, v31.16b, v30.16b
+        umaxp   v31.4s, v31.4s, v31.4s
+        fmov    x5, d31
+        cbz     x5, .L7</code></pre>
+<p>Here GCC uses 4-way unrolling of the loop and uses vector comparisons, which explains the speed.</p>
+<p>The other variants appear to use 2-way unrolling - a possible explanation for the 2x difference:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>.L40:
+        add     v30.2d, v30.2d, v28.2d
+        cmp     x5, x1
+        beq     .L55
+.L43:
+        lsl     x2, x1, 4
+        add     x1, x1, 1
+        ldr     q31, [x4, x2]
+        fcmeq   v31.2d, v31.2d, v29.2d
+        umaxp   v31.4s, v31.4s, v31.4s
+        fmov    x2, d31
+        cbz     x2, .L40</code></pre>
+<p>With clang on the other hand, all variants use loop nests with scalar instructions:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>.LBB0_3:
+        ldr     d1, [x8, x0, lsl #3]
+        fcmp    d1, d0
+        b.eq    .LBB0_6
+        add     x0, x0, #1
+        cmp     x9, x0
+        b.ne    .LBB0_3</code></pre>
+<p>I was interested in what the Intel C++ Compiler (the newer LLVM-based version) would do.
+Interestingly, only the C-like variant appears to be vectorized.
+For example targeting the Intel <a href="https://en.wikipedia.org/wiki/Skylake_(microarchitecture)">Skylake</a> microarchitecture (<code>-march=skylake</code>), it produces a rather aggressively vectorized loop:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>.LBB0_16:
+        lea     rbx, [r11 + 8*r9]
+        vcmpeqpd        ymm2, ymm1, ymmword ptr [rbx]
+        vcmpeqpd        ymm3, ymm1, ymmword ptr [rbx + 32]
+        vpackssdw       ymm2, ymm2, ymm3
+        vcmpeqpd        ymm3, ymm1, ymmword ptr [rbx + 64]
+        vpermq  ymm2, ymm2, 216
+        vcmpeqpd        ymm4, ymm1, ymmword ptr [rbx + 96]
+        vpackssdw       ymm3, ymm3, ymm4
+        vpermq  ymm3, ymm3, 216
+        vpackssdw       ymm2, ymm2, ymm3
+        vpermq  ymm2, ymm2, 216
+        vcmpeqpd        ymm3, ymm1, ymmword ptr [rbx + 128]
+        vcmpeqpd        ymm4, ymm1, ymmword ptr [rbx + 160]
+        vpackssdw       ymm3, ymm3, ymm4
+        vpermq  ymm3, ymm3, 216
+        vcmpeqpd        ymm4, ymm1, ymmword ptr [rbx + 192]
+        vcmpeqpd        ymm5, ymm1, ymmword ptr [rbx + 224]
+        vpackssdw       ymm4, ymm4, ymm5
+        vpermq  ymm4, ymm4, 216
+        vpackssdw       ymm3, ymm3, ymm4
+        vpermq  ymm3, ymm3, 216
+        vpacksswb       ymm2, ymm2, ymm3
+        vpmovmskb       ebx, ymm2
+        test    ebx, ebx
+        jne     .LBB0_17
+        add     r9, 32
+        cmp     r9, r10
+        jbe     .LBB0_16</code></pre>
+<p>Here it works on chunks of 32 elements as seen from the 8 memory references and 4 doubles per YMM register.</p>
+<p>I did not attempt to measure the performance on an AMD64 machine.</p>
+<h3 id="fortran-findloc-intrinsic">Fortran <code>findloc</code> intrinsic</h3>
+<p>Fortran 2008 offers a built-in function, <code>findloc</code>, which makes code very clear and concise.
+It is generic over intrinsic types and also provides several optional arguments:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>result = findloc(array, value, dim [, mask] [,kind] [,back])</code></pre>
+<p>But conciseness isn&rsquo;t everything&mdash;what about performance?</p>
+<p>To test this, we can wrap the intrinsic in a short C-compatible wrapper function, allowing it to be called from C or C++:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">! int f_findloc(double items[], int size, double item);
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span><span style="color:#8839ef">function</span> f_findloc(items, size, item) <span style="color:#8839ef">bind</span>(c)
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">use</span>, <span style="color:#8839ef">intrinsic</span> <span style="color:#d20f39">::</span> <span style="color:#04a5e5">iso_c_binding</span>, <span style="color:#8839ef">only</span>: <span style="color:#8839ef">c_int</span>, <span style="color:#8839ef">c_double</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">implicit</span> <span style="color:#8839ef">none</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">integer</span>(<span style="color:#8839ef">c_int</span>), <span style="color:#8839ef">value</span> <span style="color:#d20f39">::</span> size
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">real</span>(<span style="color:#8839ef">c_double</span>), <span style="color:#8839ef">intent</span>(in) <span style="color:#d20f39">::</span> items(size)
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">real</span>(<span style="color:#8839ef">c_double</span>), <span style="color:#8839ef">intent</span>(in), <span style="color:#8839ef">value</span> <span style="color:#d20f39">::</span> item
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">integer</span>(<span style="color:#8839ef">c_int</span>) <span style="color:#d20f39">::</span> f_findloc
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#9ca0b0;font-style:italic">! Note: Fortran uses 1-based indexing by default
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>    f_findloc <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">findloc</span>(items,item,<span style="color:#04a5e5">dim</span><span style="color:#04a5e5;font-weight:bold">=</span><span style="color:#fe640b">1</span>) <span style="color:#04a5e5;font-weight:bold">-</span> <span style="color:#fe640b">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span> <span style="color:#8839ef">function</span></span></span></code></pre></div>
+<p>One difference from C and C++ is that Fortran uses 1-based indexing by default,
+the convention in Fortran is to use 0 to indicate absence of the item.
+Hence we need to subtract 1 to match the convention used earlier in the C-like variant.</p>
+<p>For completeness we will also look at a loop-based version in Fortran.
+For theatrical purposes, I&rsquo;m writing it in legacy fixed-form Fortran complete with implicit typing and labels:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span>      <span style="color:#8839ef">INTEGER</span> <span style="color:#8839ef">FUNCTION</span> DFIND(ITEMS, N, X)
+</span></span><span style="display:flex;"><span>      <span style="color:#8839ef">DOUBLE PRECISION</span> ITEMS(N), X
+</span></span><span style="display:flex;"><span>      <span style="color:#8839ef">DO</span> <span style="color:#fe640b">10</span> I <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>, N
+</span></span><span style="display:flex;"><span>         <span style="color:#8839ef">IF</span> (X .EQ. ITEMS(I)) <span style="color:#8839ef">THEN</span>
+</span></span><span style="display:flex;"><span>            DFIND <span style="color:#04a5e5;font-weight:bold">=</span> I
+</span></span><span style="display:flex;"><span>            <span style="color:#8839ef">RETURN</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#8839ef">ENDIF</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#fe640b">10</span> <span style="color:#8839ef">CONTINUE</span>
+</span></span><span style="display:flex;"><span>      DFIND <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#8839ef">RETURN</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#8839ef">END</span></span></span></code></pre></div>
+<p>This time, we have to rely on the platform calling convention to call the routine from C++.
+We can achieve this with the following prototype:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#8839ef">extern</span> <span style="color:#40a02b">&#34;C&#34;</span> <span style="color:#d20f39">int</span> dfind_(<span style="color:#d20f39">double</span> items[], <span style="color:#d20f39">int</span> <span style="color:#04a5e5;font-weight:bold">*</span>n, <span style="color:#d20f39">double</span> <span style="color:#04a5e5;font-weight:bold">*</span>x);</span></span></code></pre></div>
+<p>For the tests we&rsquo;ll be using gfortran 15.2 and flang 20.1, and using the flags: <code>-O3 -mcpu=apple-m2</code>.</p>
+<p>The performance results look the following:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Compiler</th>
+          <th>Time (ns)</th>
+          <th>Bandwidth (GiB/s)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>gfortran <code>findloc</code></td>
+          <td>10422</td>
+          <td>24.1</td>
+      </tr>
+      <tr>
+          <td>gfortran <code>DFIND</code></td>
+          <td>4891</td>
+          <td>50.0</td>
+      </tr>
+      <tr>
+          <td>flang <code>findloc</code></td>
+          <td>48566</td>
+          <td>5.0</td>
+      </tr>
+      <tr>
+          <td>flang <code>DFIND</code></td>
+          <td>9998</td>
+          <td>24.4</td>
+      </tr>
+  </tbody>
+</table>
+<p>With gfortran the performance is comparable to the previous gcc results.
+Once again, the difference between <code>findloc</code> and raw loops is probably due to the implicit compiler choice between 2-way and 4-way unrolling.
+It would be interesting to determine which compilation or language factor causes this difference.</p>
+<p>On the other hand flang&rsquo;s <code>findloc</code> implementations proves to be slower.
+We can look for an explanation for the low performance by peeking into the assembly.
+Unlike gfortran, which inlines <code>findloc</code>, flang calls a runtime function (<code>__FortranAFindlocDim</code>).
+The implementation of this function can be found in the <a href="https://github.com/llvm/llvm-project/blob/2e424deeb6180d112323f4df955c8034eb56780c/flang-rt/lib/runtime/findloc.cpp#L317">LLVM repository</a>.
+For the record, I&rsquo;m using flang installed via the <code>brew</code> package manager.
+Maybe some LLVM compilation tweaks could improve the performance of this routine?
+Hopefully the performance will improved in future flang releases.</p>
+<p>For completeness, I also looked at the output of the Intel Fortran compilers.
+Neither ifort 2021.11 (the last pre-deprecation release) nor ifx 2024.0.0 vectorizes the loop, and both use scalar instructions instead.</p>
+<p>So if you need a fast search over an array of doubles, and performance is the priority, a straightforward hand-written loop remains an efficient option. It may not be the peak of API or programming language design, but it gets the job done.</p>
+<h2 id="searching-an-int-array">Searching an <code>int</code> array</h2>
+<p>The original discussion on Twitter concerned an integer array, so I ran the same micro-benchmarks for <code>int</code> as well.
+In this scenario, there is less variation across C++ variants.</p>
+<p>Integer search using GCC 15.2:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Variant</th>
+          <th>Time (ns)</th>
+          <th>Bandwidth (GiB/s)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>C-like</td>
+          <td>4840</td>
+          <td>25.2</td>
+      </tr>
+      <tr>
+          <td>Iterators</td>
+          <td>4863</td>
+          <td>25.1</td>
+      </tr>
+      <tr>
+          <td>Range-based for</td>
+          <td>4909</td>
+          <td>24.9</td>
+      </tr>
+      <tr>
+          <td><code>find</code> algorithm</td>
+          <td>4899</td>
+          <td>24.9</td>
+      </tr>
+      <tr>
+          <td>Fortran <code>findloc</code></td>
+          <td>4834</td>
+          <td>25.3</td>
+      </tr>
+      <tr>
+          <td>Fortran <code>ÌFIND</code></td>
+          <td>4801</td>
+          <td>25.4</td>
+      </tr>
+  </tbody>
+</table>
+<p>Integer search using clang 17.0 and flang 20.1:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Variant</th>
+          <th>Time (ns)</th>
+          <th>Bandwidth (GiB/s)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>C-like</td>
+          <td>9690</td>
+          <td>12.6</td>
+      </tr>
+      <tr>
+          <td>Iterators</td>
+          <td>9972</td>
+          <td>12.4</td>
+      </tr>
+      <tr>
+          <td>Range-based for</td>
+          <td>11138</td>
+          <td>11.9</td>
+      </tr>
+      <tr>
+          <td><code>find</code> algorithm</td>
+          <td>9932</td>
+          <td>12.3</td>
+      </tr>
+      <tr>
+          <td>Fortran <code>findloc</code></td>
+          <td>49764</td>
+          <td>2.5</td>
+      </tr>
+      <tr>
+          <td>Fortran <code>ÌFIND</code></td>
+          <td>9913</td>
+          <td>12.3</td>
+      </tr>
+  </tbody>
+</table>
+<p>With both compiler families the C-like solution happened to be a tiny fraction faster in this particular run.
+In general I observed a few percent of variation when rerunning the microbenchmark driver.
+I didn&rsquo;t inspect the generated assembly this time, but the differences are small enough that they can be considered negligible.</p>
+<p>As before, the <code>findloc</code> implementation in flang is behind others.</p>
+<h2 id="replicating-the-results">Replicating the results</h2>
+<p>As mentioned earlier, the code can be found in the <a href="https://codeberg.org/ivan-pi/shed/src/branch/main/perf"><code>shed/perf</code></a> folder (which also contains a bunch of other stuff).
+You can also download a <a href="https://codeberg.org/ivan-pi/shed/archive/main:perf.tar.gz">standalone tarball (12.4 KB)</a>.
+To unpack the files use:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>tar xf shed-main_perf.tar.gz &amp;&amp; cd shed</code></pre>
+<p>Create the build directory and configure the CMake project with your desired options:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>mkdir build &amp;&amp; cd build
+cmake .. \
+  -DCMAKE_Fortran_COMPILER=gfortran \
+  -DCMAKE_Fortran_FLAGS=&#34;-O3 -mcpu=native&#34; \
+  -DCMAKE_C_COMPILER=gcc-15 \
+  -DCMAKE_C_FLAGS=&#34;-O3 -mcpu=native&#34; \
+  -DCMAKE_CXX_COMPILER=g++-15 \
+  -DCMAKE_CXX_FLAGS=&#34;-O3 -mcpu=native&#34; \
+  -DCMAKE_BUILD_TYPE=Release</code></pre>
+<p>If configurations succeeds, you can build the executable and run the benchmark driver with:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>make findloc
+./findloc --benchmark_filter=32768</code></pre>
+<p>The raw output will look similar to this:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>2025-11-22T20:38:38+01:00
+</span></span><span style="display:flex;"><span>Running ./findloc
+</span></span><span style="display:flex;"><span>Run on (10 X 24.0006 MHz CPU s)
+</span></span><span style="display:flex;"><span>CPU Caches:
+</span></span><span style="display:flex;"><span>  L1 Data 64 KiB
+</span></span><span style="display:flex;"><span>  L1 Instruction 128 KiB
+</span></span><span style="display:flex;"><span>  L2 Unified 4096 KiB (x10)
+</span></span><span style="display:flex;"><span>Load Average: 193.07, 174.62, 183.12
+</span></span><span style="display:flex;"><span>------------------------------------------------------------------------------------
+</span></span><span style="display:flex;"><span>Benchmark                          Time             CPU   Iterations UserCounters...
+</span></span><span style="display:flex;"><span>------------------------------------------------------------------------------------
+</span></span><span style="display:flex;"><span>BM_find_fortran/32768          10330 ns        10020 ns        69115 bytes_per_second=24.3652Gi/s
+</span></span><span style="display:flex;"><span>BM_find_dfind/32768             4914 ns         4909 ns       141821 bytes_per_second=49.7352Gi/s
+</span></span><span style="display:flex;"><span>BM_find_c/32768                 4855 ns         4855 ns       143112 bytes_per_second=50.2876Gi/s
+</span></span><span style="display:flex;"><span>BM_find_iter/32768              9760 ns         9754 ns        71777 bytes_per_second=25.0292Gi/s
+</span></span><span style="display:flex;"><span>BM_find_rbfor/32768             9756 ns         9747 ns        70924 bytes_per_second=25.0469Gi/s
+</span></span><span style="display:flex;"><span>BM_find_range/32768             9795 ns         9791 ns        72052 bytes_per_second=24.9351Gi/s
+</span></span><span style="display:flex;"><span>BM_find_int_fortran/32768       4853 ns         4853 ns       143246 bytes_per_second=25.1543Gi/s
+</span></span><span style="display:flex;"><span>BM_find_int_ifind/32768         4838 ns         4837 ns       144714 bytes_per_second=25.235Gi/s
+</span></span><span style="display:flex;"><span>BM_find_int_c/32768             4854 ns         4850 ns       143823 bytes_per_second=25.1675Gi/s
+</span></span><span style="display:flex;"><span>BM_find_int_iter/32768          4851 ns         4850 ns       142512 bytes_per_second=25.1686Gi/s
+</span></span><span style="display:flex;"><span>BM_find_int_rbfor/32768         4834 ns         4832 ns       144733 bytes_per_second=25.2625Gi/s
+</span></span><span style="display:flex;"><span>BM_find_int_range/32768         5175 ns         5010 ns       100000 bytes_per_second=24.3661Gi/s</span></span></code></pre></div>
+]]></content:encoded>
+    </item>
     <item>
       <title>Evaluating the closed form coefficients of Laguerre polynomials</title>
       <link>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link>
-      <pubDate>Wed, 29 Dec 2021 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 29 Dec 2021 00:00:00 +0100</pubDate>
       <guid>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid>
-      <description>&lt;h1 id=&#34;evaluating-the-closed-form-coefficients-of-laguerre-polynomials&#34;&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;&#xA;&lt;p&gt;For some numerical applications it can be useful to work with the closed form&#xA;expression for Laguerre polynomials. The closed form is given by&lt;/p&gt;&#xA;&#xA;&lt;table style=&#34;width: 100%&#34;&gt;&#xA;&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;&#xA;&lt;td&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;&#xA;&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(1)&lt;/td&gt;&#xA;&lt;/table&gt;&#xA;&#xA;&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;&#xA;&#xA;&lt;table style=&#34;width: 100%&#34;&gt;&#xA;&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;&#xA;&lt;td&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;&#xA;&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(2)&lt;/td&gt;&#xA;&lt;/table&gt;&#xA;&#xA;&lt;p&gt;Since $n$ and $k$ are both integers, the coefficients are rational numbers.&#xA;For most computational applications we will likely only need to work with&#xA;floating point approximations of the coefficients.&lt;/p&gt;</description>
+      <description>&lt;h1 id=&#34;evaluating-the-closed-form-coefficients-of-laguerre-polynomials&#34;&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;
+&lt;p&gt;For some numerical applications it can be useful to work with the closed form
+expression for Laguerre polynomials. The closed form is given by&lt;/p&gt;
+
+&lt;table style=&#34;width: 100%&#34;&gt;
+&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
+&lt;td&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;
+&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(1)&lt;/td&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;
+
+&lt;table style=&#34;width: 100%&#34;&gt;
+&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
+&lt;td&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;
+&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(2)&lt;/td&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;Since $n$ and $k$ are both integers, the coefficients are rational numbers.
+For most computational applications we will likely only need to work with
+floating point approximations of the coefficients.&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials">Evaluating the closed form coefficients of Laguerre polynomials</h1>
+<p>For some numerical applications it can be useful to work with the closed form
+expression for Laguerre polynomials. The closed form is given by</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$</td>
+<td style="width: 10000px; text-align: right;">(1)</td>
+</table>
+
+
+<p>We can evaluate the coefficients with the help of the factorial formula</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
+<td style="width: 10000px; text-align: right;">(2)</td>
+</table>
+
+
+<p>Since $n$ and $k$ are both integers, the coefficients are rational numbers.
+For most computational applications we will likely only need to work with
+floating point approximations of the coefficients.</p>
+<p>When evaluating the coefficients using the factorial formula we should
+be careful to avoid overflow. For example if we try to compute $$n!$$ using default Fortran integers (32-bit), it will only be possible to calculate coefficients for $n \leq 12$.</p>
+<p>To avoid such issues we can calculate the coefficients using the
+the gamma function $\Gamma$ and the logarithm thereof. This follows from the helpful observation that for integer arguments</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$\Gamma(n&#43;1) = n!$$</td>
+<td style="width: 10000px; text-align: right;">(3)</td>
+</table>
+
+
+<p>For the coefficients of $L_n(x)$, a straightforward Fortran implementation might look as follows:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span>  <span style="color:#8839ef">pure</span> <span style="color:#8839ef">function</span> lagcoefs(n) <span style="color:#8839ef">result</span>(a)
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">integer</span>, <span style="color:#8839ef">intent</span>(in) <span style="color:#d20f39">::</span> n
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">real</span> <span style="color:#d20f39">::</span> a(<span style="color:#fe640b">0</span>:n)
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">integer</span> <span style="color:#d20f39">::</span> k
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">do</span> k <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0</span>, n
+</span></span><span style="display:flex;"><span>      a(k) <span style="color:#04a5e5;font-weight:bold">=</span> (<span style="color:#04a5e5;font-weight:bold">-</span><span style="color:#fe640b">1</span>)<span style="color:#04a5e5;font-weight:bold">**</span>k <span style="color:#04a5e5;font-weight:bold">*</span> <span style="color:#04a5e5">exp</span>( &amp;
+</span></span><span style="display:flex;"><span>            <span style="color:#04a5e5">log_gamma</span>(<span style="color:#8839ef">real</span>(n<span style="color:#04a5e5;font-weight:bold">+</span><span style="color:#fe640b">1</span>)) &amp;
+</span></span><span style="display:flex;"><span>        <span style="color:#04a5e5;font-weight:bold">-</span> <span style="color:#fe640b">2</span><span style="color:#04a5e5;font-weight:bold">*</span><span style="color:#04a5e5">log_gamma</span>(<span style="color:#8839ef">real</span>(k<span style="color:#04a5e5;font-weight:bold">+</span><span style="color:#fe640b">1</span>)) &amp;
+</span></span><span style="display:flex;"><span>          <span style="color:#04a5e5;font-weight:bold">-</span> <span style="color:#04a5e5">log_gamma</span>(<span style="color:#8839ef">real</span>(n<span style="color:#04a5e5;font-weight:bold">-</span>k<span style="color:#04a5e5;font-weight:bold">+</span><span style="color:#fe640b">1</span>)))
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">end</span> <span style="color:#8839ef">do</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#8839ef">end</span> <span style="color:#8839ef">function</span></span></span></code></pre></div>
+<p>where we have used the properties of logarithms to transform the quotient into
+subtraction.  The input <code>n</code> should be a non-negative integer value.
+The coefficients returned by the procedure are given in <em>ascending</em> order of
+powers of $x$.</p>
+<p>A similar procedure can be written for the derivative of the Laguerre polynomial.
+These are given be the expression</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$L&#39;_n(x) = \sum_{k=0}^n \binom{n}{k}\frac{(-1)^k}{k!} k x^{k-1}$$</td>
+<td style="width: 10000px; text-align: right;">(4)</td>
+</table>
+
+
+<p>Here we should emphasize that the $i$-th derivative of a Laguerre polynomial
+is polynomial of order ${n - i}$ (a polynomial of order $n$
+is described by $n+1$ coefficients).</p>
+<p>The implementation can also be adapted easily to return the coefficients of
+the generalized Laguerre polynomials with the following closed form expression</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$L_n^{(\alpha)}(x) = \sum_{k=0}^n (-1)^k \binom{n &#43; \alpha}{ n - k} \frac{x^k}{k!}$$</td>
+<td style="width: 10000px; text-align: right;">(5)</td>
+</table>
+
+
+]]></content:encoded>
     </item>
     <item>
       <title>Setting up a personal website using Hugo</title>
       <link>/posts/2020/02/setting-up-a-personal-website-using-hugo/</link>
-      <pubDate>Sat, 15 Feb 2020 00:00:00 +0000</pubDate>
+      <pubDate>Sat, 15 Feb 2020 00:00:00 +0100</pubDate>
       <guid>/posts/2020/02/setting-up-a-personal-website-using-hugo/</guid>
-      <description>&lt;p&gt;As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).&lt;/p&gt;&#xA;&lt;p&gt;Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).&lt;/p&gt;</description>
+      <description>&lt;p&gt;As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).&lt;/p&gt;
+&lt;p&gt;Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>As many before me, I&rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&rsquo;m saving some of these for blog posts).</p>
+<p>Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).</p>
+<p>Since this post is aimed mostly towards myself, I might come back and add further instructions as I move along.</p>
+<h2 id="installing-hugo">Installing Hugo</h2>
+<p>To install Hugo on Linux I followed the instructions <a href="https://gohugo.io/getting-started/installing/#install-hugo-from-tarball">here</a> under the section &ldquo;Install Hugo from Tarball&rdquo;. Releases can be found at <a href="https://github.com/gohugoio/hugo/releases">https://github.com/gohugoio/hugo/releases</a>.</p>
+<p>After downloading the right tarball, I used the following commands to verify wasn&rsquo;t corrupted during the download, and install Hugo into my local <code>bin</code> directory:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>tar tvf hugo_0.55.6_Linux-64bit.tar.gz
+cd ~/.local/bin
+tar -xvzf ~/Downloads/hugo_0.55.6_Linux-64bit.tar.gz</code></pre>
+<p>To check installation was succesful I ran the command</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>$ hugo version
+Hugo Static Site Generator v0.55.6-A5D4C82D linux/amd64 BuildDate: 2019-05-18T07:56:30Z</code></pre>
+<p>The <a href="https://gohugo.io/categories/getting-started">Getting Started</a> from Hugo contains tons of helpful information to move forward.</p>
+<h2 id="adding-blog-posts">Adding blog posts</h2>
+<p>To add a blog post just create a content file <code>/content/posts/&lt;FILE&gt;.&lt;FORMAT&gt;</code> and provide the needed metadata and post content. The metadata is stored in the <a href="https://gohugo.io/content-management/front-matter/">front matter</a> of a post using either YAML (identified by opening and closing <code>+++</code>), TOML (identified by opening or closing <code>---</code>) or JSON (a single JSON object surrounded by curly braces <code>{</code> and <code>}</code>, followed by a new line).</p>
+<p>The command</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>hugo new posts/my-latest-post.md</span></span></code></pre></div>
+<p>can be used to create a new content file and automatically set the date and title. The command will guess the type file of to create based on the path provided. The command should be run within the root directory of the site.</p>
+<p><a href="https://gohugo.io/content-management/archetypes/">Archetype</a> templates can be used to preconfigure the front matter and possibly also the content dispositions for the the different content types.</p>
+<h2 id="deploying-the-page">Deploying the page</h2>
+<h3 id="host-on-github">Host on GitHub</h3>
+<p>At the moment I am hosting this website using GitHub pages as a user page located at <a href="https://ivan-pi.github.io">https://ivan-pi.github.io</a>. The sources are located at <a href="https://github.com/ivan-pi/hugo_blog">https://github.com/ivan-pi/hugo_blog</a>. This kind of setup is described in the <a href="https://gohugo.io/hosting-and-deployment/hosting-on-github/">Hugo</a> documentation.</p>
+<p>Deploying the page is automated using the <code>deploy.sh</code> script:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>./deploy.sh [message]</code></pre>
+<p>which accepts an optional commit message. The page should be up and running within a couple minutes.</p>
+<h2 id="displaying-math-using-katex">Displaying math using Katex</h2>
+<h3 id="latex">Latex</h3>
+<p>Math can be rendered using the <a href="https://katex.org/">Katex</a> engine. The necessary lines of HTML to achieve this are found in the partials folder <code>\themes\mytheme\layouts\partials\</code> in the file <code>katex.html</code>.</p>
+<p>To use math in a post it is necessary to set the following two page variables:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>markup: &#34;mmark&#34;
+katex: &#34;true&#34;</code></pre>
+<p>Consult the <a href="https://katex.org/docs/supported.html">Supported Functions</a> page to make sure if a TeX function is supported or not.</p>
+<hr>
+<p>Warning: mmark will be deprecated in the future, so a different solution will be needed.</p>
+<hr>
+<h3 id="equation-numbering">Equation numbering</h3>
+<p>A numbered equation shortcode has been added to simple Hugo theme in <code>themes/simple-hugo-theme/layouts/shortcodes/neq.html</code> and can be called as follows:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>{{&lt; neq 1 &#34;E=mc^2&#34;  &gt;}}</code></pre>
+<p>where the first argument is the displayed equation number, and the second argument is a valid KaTeX formula (enclosed between quotation marks).</p>
+<p>Sample output:</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$E=mc^2$$</td>
+<td style="width: 10000px; text-align: right;">(1)</td>
+</table>
+
+
+<p>At the moment referencing must be performed manually. If you find of a better solution for equation numbering, please let me know.</p>
+<p>Related:</p>
+<ul>
+<li><a href="https://jsfiddle.net/p9du5Lgq/5/?utm_source=website&amp;utm_medium=embed&amp;utm_campaign=p9du5Lgq">KaTeX \tag hack</a></li>
+<li><a href="https://github.com/KaTeX/KaTeX/issues/350">Equation numbering (KaTeX issue)</a></li>
+</ul>
+]]></content:encoded>
     </item>
     <item>
       <title></title>
       <link>/posts/1/01/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>/posts/1/01/</guid>
-      <description>&lt;p&gt;SIMD Libraries&lt;/p&gt;&#xA;&lt;p&gt;Generic SIMD&#xA;&lt;a href=&#34;https://github.com/genericsimd/generic_simd/&#34;&gt;https://github.com/genericsimd/generic_simd/&lt;/a&gt;&#xA;&lt;a href=&#34;https://doi.org/10.1145/2568058.2568059&#34;&gt;https://doi.org/10.1145/2568058.2568059&lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;Google Highway&#xA;&lt;a href=&#34;https://google.github.io/highway/en/master/&#34;&gt;https://google.github.io/highway/en/master/&lt;/a&gt;&#xA;&lt;a href=&#34;https://github.com/google/highway&#34;&gt;https://github.com/google/highway&lt;/a&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;SIMD Libraries&lt;/p&gt;
+&lt;p&gt;Generic SIMD
+&lt;a href=&#34;https://github.com/genericsimd/generic_simd/&#34;&gt;https://github.com/genericsimd/generic_simd/&lt;/a&gt;
+&lt;a href=&#34;https://doi.org/10.1145/2568058.2568059&#34;&gt;https://doi.org/10.1145/2568058.2568059&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Google Highway
+&lt;a href=&#34;https://google.github.io/highway/en/master/&#34;&gt;https://google.github.io/highway/en/master/&lt;/a&gt;
+&lt;a href=&#34;https://github.com/google/highway&#34;&gt;https://github.com/google/highway&lt;/a&gt;&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>SIMD Libraries</p>
+<p>Generic SIMD
+<a href="https://github.com/genericsimd/generic_simd/">https://github.com/genericsimd/generic_simd/</a>
+<a href="https://doi.org/10.1145/2568058.2568059">https://doi.org/10.1145/2568058.2568059</a></p>
+<p>Google Highway
+<a href="https://google.github.io/highway/en/master/">https://google.github.io/highway/en/master/</a>
+<a href="https://github.com/google/highway">https://github.com/google/highway</a></p>
+]]></content:encoded>
     </item>
   </channel>
 </rss>

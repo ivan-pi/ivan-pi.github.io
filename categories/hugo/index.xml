@@ -1,19 +1,112 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Hugo on Ivan Pribec</title>
+    <title>Ivan Pribec</title>
     <link>/categories/hugo/</link>
-    <description>Recent content in Hugo on Ivan Pribec</description>
-    <generator>Hugo</generator>
+    <description>Recent content on Ivan Pribec</description>
+    <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 15 Feb 2020 00:00:00 +0000</lastBuildDate>
+    <copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright>
+    <lastBuildDate>Sat, 15 Feb 2020 00:00:00 +0100</lastBuildDate>
     <atom:link href="/categories/hugo/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Setting up a personal website using Hugo</title>
       <link>/posts/2020/02/setting-up-a-personal-website-using-hugo/</link>
-      <pubDate>Sat, 15 Feb 2020 00:00:00 +0000</pubDate>
+      <pubDate>Sat, 15 Feb 2020 00:00:00 +0100</pubDate>
       <guid>/posts/2020/02/setting-up-a-personal-website-using-hugo/</guid>
-      <description>&lt;p&gt;As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).&lt;/p&gt;&#xA;&lt;p&gt;Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).&lt;/p&gt;</description>
+      <description>&lt;p&gt;As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).&lt;/p&gt;
+&lt;p&gt;Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>As many before me, I&rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&rsquo;m saving some of these for blog posts).</p>
+<p>Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).</p>
+<p>Since this post is aimed mostly towards myself, I might come back and add further instructions as I move along.</p>
+<h2 id="installing-hugo">Installing Hugo</h2>
+<p>To install Hugo on Linux I followed the instructions <a href="https://gohugo.io/getting-started/installing/#install-hugo-from-tarball">here</a> under the section &ldquo;Install Hugo from Tarball&rdquo;. Releases can be found at <a href="https://github.com/gohugoio/hugo/releases">https://github.com/gohugoio/hugo/releases</a>.</p>
+<p>After downloading the right tarball, I used the following commands to verify wasn&rsquo;t corrupted during the download, and install Hugo into my local <code>bin</code> directory:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>tar tvf hugo_0.55.6_Linux-64bit.tar.gz
+cd ~/.local/bin
+tar -xvzf ~/Downloads/hugo_0.55.6_Linux-64bit.tar.gz</code></pre>
+<p>To check installation was succesful I ran the command</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>$ hugo version
+Hugo Static Site Generator v0.55.6-A5D4C82D linux/amd64 BuildDate: 2019-05-18T07:56:30Z</code></pre>
+<p>The <a href="https://gohugo.io/categories/getting-started">Getting Started</a> from Hugo contains tons of helpful information to move forward.</p>
+<h2 id="adding-blog-posts">Adding blog posts</h2>
+<p>To add a blog post just create a content file <code>/content/posts/&lt;FILE&gt;.&lt;FORMAT&gt;</code> and provide the needed metadata and post content. The metadata is stored in the <a href="https://gohugo.io/content-management/front-matter/">front matter</a> of a post using either YAML (identified by opening and closing <code>+++</code>), TOML (identified by opening or closing <code>---</code>) or JSON (a single JSON object surrounded by curly braces <code>{</code> and <code>}</code>, followed by a new line).</p>
+<p>The command</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>hugo new posts/my-latest-post.md</span></span></code></pre></div>
+<p>can be used to create a new content file and automatically set the date and title. The command will guess the type file of to create based on the path provided. The command should be run within the root directory of the site.</p>
+<p><a href="https://gohugo.io/content-management/archetypes/">Archetype</a> templates can be used to preconfigure the front matter and possibly also the content dispositions for the the different content types.</p>
+<h2 id="deploying-the-page">Deploying the page</h2>
+<h3 id="host-on-github">Host on GitHub</h3>
+<p>At the moment I am hosting this website using GitHub pages as a user page located at <a href="https://ivan-pi.github.io">https://ivan-pi.github.io</a>. The sources are located at <a href="https://github.com/ivan-pi/hugo_blog">https://github.com/ivan-pi/hugo_blog</a>. This kind of setup is described in the <a href="https://gohugo.io/hosting-and-deployment/hosting-on-github/">Hugo</a> documentation.</p>
+<p>Deploying the page is automated using the <code>deploy.sh</code> script:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>./deploy.sh [message]</code></pre>
+<p>which accepts an optional commit message. The page should be up and running within a couple minutes.</p>
+<h2 id="displaying-math-using-katex">Displaying math using Katex</h2>
+<h3 id="latex">Latex</h3>
+<p>Math can be rendered using the <a href="https://katex.org/">Katex</a> engine. The necessary lines of HTML to achieve this are found in the partials folder <code>\themes\mytheme\layouts\partials\</code> in the file <code>katex.html</code>.</p>
+<p>To use math in a post it is necessary to set the following two page variables:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>markup: &#34;mmark&#34;
+katex: &#34;true&#34;</code></pre>
+<p>Consult the <a href="https://katex.org/docs/supported.html">Supported Functions</a> page to make sure if a TeX function is supported or not.</p>
+<hr>
+<p>Warning: mmark will be deprecated in the future, so a different solution will be needed.</p>
+<hr>
+<h3 id="equation-numbering">Equation numbering</h3>
+<p>A numbered equation shortcode has been added to simple Hugo theme in <code>themes/simple-hugo-theme/layouts/shortcodes/neq.html</code> and can be called as follows:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>{{&lt; neq 1 &#34;E=mc^2&#34;  &gt;}}</code></pre>
+<p>where the first argument is the displayed equation number, and the second argument is a valid KaTeX formula (enclosed between quotation marks).</p>
+<p>Sample output:</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$E=mc^2$$</td>
+<td style="width: 10000px; text-align: right;">(1)</td>
+</table>
+
+
+<p>At the moment referencing must be performed manually. If you find of a better solution for equation numbering, please let me know.</p>
+<p>Related:</p>
+<ul>
+<li><a href="https://jsfiddle.net/p9du5Lgq/5/?utm_source=website&amp;utm_medium=embed&amp;utm_campaign=p9du5Lgq">KaTeX \tag hack</a></li>
+<li><a href="https://github.com/KaTeX/KaTeX/issues/350">Equation numbering (KaTeX issue)</a></li>
+</ul>
+]]></content:encoded>
     </item>
   </channel>
 </rss>

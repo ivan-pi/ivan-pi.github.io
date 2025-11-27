@@ -1,19 +1,124 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Polynomials on Ivan Pribec</title>
+    <title>Ivan Pribec</title>
     <link>/tags/polynomials/</link>
-    <description>Recent content in Polynomials on Ivan Pribec</description>
-    <generator>Hugo</generator>
+    <description>Recent content on Ivan Pribec</description>
+    <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 29 Dec 2021 00:00:00 +0000</lastBuildDate>
+    <copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright>
+    <lastBuildDate>Wed, 29 Dec 2021 00:00:00 +0100</lastBuildDate>
     <atom:link href="/tags/polynomials/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Evaluating the closed form coefficients of Laguerre polynomials</title>
       <link>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link>
-      <pubDate>Wed, 29 Dec 2021 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 29 Dec 2021 00:00:00 +0100</pubDate>
       <guid>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid>
-      <description>&lt;h1 id=&#34;evaluating-the-closed-form-coefficients-of-laguerre-polynomials&#34;&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;&#xA;&lt;p&gt;For some numerical applications it can be useful to work with the closed form&#xA;expression for Laguerre polynomials. The closed form is given by&lt;/p&gt;&#xA;&#xA;&lt;table style=&#34;width: 100%&#34;&gt;&#xA;&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;&#xA;&lt;td&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;&#xA;&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(1)&lt;/td&gt;&#xA;&lt;/table&gt;&#xA;&#xA;&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;&#xA;&#xA;&lt;table style=&#34;width: 100%&#34;&gt;&#xA;&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;&#xA;&lt;td&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;&#xA;&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(2)&lt;/td&gt;&#xA;&lt;/table&gt;&#xA;&#xA;&lt;p&gt;Since $n$ and $k$ are both integers, the coefficients are rational numbers.&#xA;For most computational applications we will likely only need to work with&#xA;floating point approximations of the coefficients.&lt;/p&gt;</description>
+      <description>&lt;h1 id=&#34;evaluating-the-closed-form-coefficients-of-laguerre-polynomials&#34;&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;
+&lt;p&gt;For some numerical applications it can be useful to work with the closed form
+expression for Laguerre polynomials. The closed form is given by&lt;/p&gt;
+
+&lt;table style=&#34;width: 100%&#34;&gt;
+&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
+&lt;td&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;
+&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(1)&lt;/td&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;
+
+&lt;table style=&#34;width: 100%&#34;&gt;
+&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
+&lt;td&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;
+&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(2)&lt;/td&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;Since $n$ and $k$ are both integers, the coefficients are rational numbers.
+For most computational applications we will likely only need to work with
+floating point approximations of the coefficients.&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials">Evaluating the closed form coefficients of Laguerre polynomials</h1>
+<p>For some numerical applications it can be useful to work with the closed form
+expression for Laguerre polynomials. The closed form is given by</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$</td>
+<td style="width: 10000px; text-align: right;">(1)</td>
+</table>
+
+
+<p>We can evaluate the coefficients with the help of the factorial formula</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
+<td style="width: 10000px; text-align: right;">(2)</td>
+</table>
+
+
+<p>Since $n$ and $k$ are both integers, the coefficients are rational numbers.
+For most computational applications we will likely only need to work with
+floating point approximations of the coefficients.</p>
+<p>When evaluating the coefficients using the factorial formula we should
+be careful to avoid overflow. For example if we try to compute $$n!$$ using default Fortran integers (32-bit), it will only be possible to calculate coefficients for $n \leq 12$.</p>
+<p>To avoid such issues we can calculate the coefficients using the
+the gamma function $\Gamma$ and the logarithm thereof. This follows from the helpful observation that for integer arguments</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$\Gamma(n&#43;1) = n!$$</td>
+<td style="width: 10000px; text-align: right;">(3)</td>
+</table>
+
+
+<p>For the coefficients of $L_n(x)$, a straightforward Fortran implementation might look as follows:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span>  <span style="color:#8839ef">pure</span> <span style="color:#8839ef">function</span> lagcoefs(n) <span style="color:#8839ef">result</span>(a)
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">integer</span>, <span style="color:#8839ef">intent</span>(in) <span style="color:#d20f39">::</span> n
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">real</span> <span style="color:#d20f39">::</span> a(<span style="color:#fe640b">0</span>:n)
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">integer</span> <span style="color:#d20f39">::</span> k
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">do</span> k <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0</span>, n
+</span></span><span style="display:flex;"><span>      a(k) <span style="color:#04a5e5;font-weight:bold">=</span> (<span style="color:#04a5e5;font-weight:bold">-</span><span style="color:#fe640b">1</span>)<span style="color:#04a5e5;font-weight:bold">**</span>k <span style="color:#04a5e5;font-weight:bold">*</span> <span style="color:#04a5e5">exp</span>( &amp;
+</span></span><span style="display:flex;"><span>            <span style="color:#04a5e5">log_gamma</span>(<span style="color:#8839ef">real</span>(n<span style="color:#04a5e5;font-weight:bold">+</span><span style="color:#fe640b">1</span>)) &amp;
+</span></span><span style="display:flex;"><span>        <span style="color:#04a5e5;font-weight:bold">-</span> <span style="color:#fe640b">2</span><span style="color:#04a5e5;font-weight:bold">*</span><span style="color:#04a5e5">log_gamma</span>(<span style="color:#8839ef">real</span>(k<span style="color:#04a5e5;font-weight:bold">+</span><span style="color:#fe640b">1</span>)) &amp;
+</span></span><span style="display:flex;"><span>          <span style="color:#04a5e5;font-weight:bold">-</span> <span style="color:#04a5e5">log_gamma</span>(<span style="color:#8839ef">real</span>(n<span style="color:#04a5e5;font-weight:bold">-</span>k<span style="color:#04a5e5;font-weight:bold">+</span><span style="color:#fe640b">1</span>)))
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">end</span> <span style="color:#8839ef">do</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#8839ef">end</span> <span style="color:#8839ef">function</span></span></span></code></pre></div>
+<p>where we have used the properties of logarithms to transform the quotient into
+subtraction.  The input <code>n</code> should be a non-negative integer value.
+The coefficients returned by the procedure are given in <em>ascending</em> order of
+powers of $x$.</p>
+<p>A similar procedure can be written for the derivative of the Laguerre polynomial.
+These are given be the expression</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$L&#39;_n(x) = \sum_{k=0}^n \binom{n}{k}\frac{(-1)^k}{k!} k x^{k-1}$$</td>
+<td style="width: 10000px; text-align: right;">(4)</td>
+</table>
+
+
+<p>Here we should emphasize that the $i$-th derivative of a Laguerre polynomial
+is polynomial of order ${n - i}$ (a polynomial of order $n$
+is described by $n+1$ coefficients).</p>
+<p>The implementation can also be adapted easily to return the coefficients of
+the generalized Laguerre polynomials with the following closed form expression</p>
+
+<table style="width: 100%">
+<td style="width: 10000px;"></td>
+<td>$$L_n^{(\alpha)}(x) = \sum_{k=0}^n (-1)^k \binom{n &#43; \alpha}{ n - k} \frac{x^k}{k!}$$</td>
+<td style="width: 10000px; text-align: right;">(5)</td>
+</table>
+
+
+]]></content:encoded>
     </item>
   </channel>
 </rss>

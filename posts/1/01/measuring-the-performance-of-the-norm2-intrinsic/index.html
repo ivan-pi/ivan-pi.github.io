@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Measuring the performance of the norm2-intrinsic&nbsp;|&nbsp;Ivan Pribec</title>
+<meta
+  name="title"
+  content="Measuring the performance of the norm2-intrinsic"
+/>
+<meta
+  name="description"
+  content="A while ago JC published a very nice article about the benefits of Fortran in teaching scientific computing.
+If either Fortran or scientific computing is your thing, I can highly recommend reading it.
+One thing that piqued my attention was the following sentence,
+
+Either way of computing the two-norm is fine, norm2 is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.
+
+In the past I&rsquo;ve observed that despite their built-in status, intrinsic functions are not always optimized to the degree I wish they were."
+/>
+<meta
+  name="keywords"
+  content="Fortran,Performance,norm2,SIMD,"
+/>
+
+  <meta name="author" content="Ivan Pribec" />
+
+
+
+
+<meta property="og:url" content="//localhost:1313/posts/1/01/measuring-the-performance-of-the-norm2-intrinsic/">
+  <meta property="og:site_name" content="Ivan Pribec">
+  <meta property="og:title" content="Measuring the performance of the norm2-intrinsic">
+  <meta property="og:description" content="A while ago JC published a very nice article about the benefits of Fortran in teaching scientific computing. If either Fortran or scientific computing is your thing, I can highly recommend reading it.
+One thing that piqued my attention was the following sentence,
+Either way of computing the two-norm is fine, norm2 is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.
+In the past I’ve observed that despite their built-in status, intrinsic functions are not always optimized to the degree I wish they were.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:tag" content="Fortran">
+    <meta property="article:tag" content="Performance">
+    <meta property="article:tag" content="Norm2">
+    <meta property="article:tag" content="SIMD">
+
+
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Measuring the performance of the norm2-intrinsic">
+  <meta name="twitter:description" content="A while ago JC published a very nice article about the benefits of Fortran in teaching scientific computing. If either Fortran or scientific computing is your thing, I can highly recommend reading it.
+One thing that piqued my attention was the following sentence,
+Either way of computing the two-norm is fine, norm2 is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.
+In the past I’ve observed that despite their built-in status, intrinsic functions are not always optimized to the degree I wish they were.">
+
+
+
+
+
+  <meta itemprop="name" content="Measuring the performance of the norm2-intrinsic">
+  <meta itemprop="description" content="A while ago JC published a very nice article about the benefits of Fortran in teaching scientific computing. If either Fortran or scientific computing is your thing, I can highly recommend reading it.
+One thing that piqued my attention was the following sentence,
+Either way of computing the two-norm is fine, norm2 is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.
+In the past I’ve observed that despite their built-in status, intrinsic functions are not always optimized to the degree I wish they were.">
+  <meta itemprop="wordCount" content="282">
+  <meta itemprop="keywords" content="Fortran,Performance,Norm2,SIMD">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+    
+    
+    
+    <link href="/bundle.min.css" rel="stylesheet" />
+
+    
+
+    
+
+
+    
+</head>
+
+  <body>
+    <header>
+      <nav>
+  <a
+    href="/"
+    
+    >home</a
+  >
+
+  <a
+    href="/posts/"
+    
+    >blog</a
+  >
+
+  <a
+    href="/code/"
+    
+    >code</a
+  >
+
+  <a
+    href="/diary/"
+    
+    >diary</a
+  >
+
+  <a
+    href="/now/"
+    
+    >now</a
+  >
+
+
+</nav>
+    <h1>Measuring the performance of the norm2-intrinsic</h1>
+
+
+    </header>
+    <main>
+      
+  
+  
+    
+      <p>
+        <i>
+          <time
+            style="color: var(--text-light);"
+            datetime="0001-01-01"
+            pubdate
+          >
+            0001-01-01
+          </time>
+        </i>
+      </p>
+    
+  
+  
+  <content>
+    <p>A while ago JC published a very nice article about the benefits of Fortran in teaching scientific computing.
+If either Fortran or scientific computing is your thing, I can highly recommend reading it.</p>
+<p>One thing that piqued my attention was the following sentence,</p>
+<blockquote>
+<p>Either way <a href="">of computing the two-norm</a> is fine, <code>norm2</code> is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.</p>
+</blockquote>
+<p>In the past I&rsquo;ve observed that despite their built-in status, intrinsic functions are not always optimized to the degree I wish they were.</p>
+<p>To demonstrate this I wrote a driver testing several variations of a norm2 function.</p>
+<p>At this point I must say writing a reliable <code>norm2</code> function is hard work.
+Experienced programmers have written several articles about this.</p>
+<p>For simplicity we&rsquo;ll look at the two-norm of an array of size 512^2, that is 4 MB of double precision values.
+We&rsquo;ll also compare different compiler flags and BLAS libraries.</p>
+<p>Instead of writing this function ourselves, we can just use the procedures provided by BLAS.
+I have several BLAS libraries installed on my system, so let&rsquo;s check those first:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Library</th>
+          <th>Elapsed (ms)</th>
+          <th>Bandwidth (GB/s)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Reference BLAS</td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>Apple Accelerate</td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>OpenBLAS</td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>ArmPL</td>
+          <td></td>
+          <td></td>
+      </tr>
+  </tbody>
+</table>
+<p>In the table above, I compiled the reference source for DNRM2 using <em>placeholder</em>, which was the faster of the two compilers.</p>
+<p>All of that said, we should all be grateful for awesome compilers like gfortran and flang.
+Maybe you know the phrase: &ldquo;Never look a gift hourse in the mouth&rdquo;.</p>
+<p>Since compilers evolve over time, remember to take these results with a grain of salt.
+Maybe the compiler of the future you are using has solved some of these issues.
+I strongly wish so.</p>
+
+  </content>
+  
+    
+    
+      <p>
+        
+          <a href="/tags/fortran/">#Fortran</a>&nbsp;&nbsp;
+        
+          <a href="/tags/performance/">#Performance</a>&nbsp;&nbsp;
+        
+          <a href="/tags/norm2/">#Norm2</a>&nbsp;&nbsp;
+        
+          <a href="/tags/simd/">#SIMD</a>&nbsp;&nbsp;
+        
+      </p>
+    
+    
+    
+      <div class="flex-between" style="margin-top: 3rem;">
+        
+        
+          <a href="/posts/1/01/" rel="next" aria-label="Next post: ">
+            <span></span>
+            <span>→</span>
+          </a>
+        
+      </div>
+    
+  
+
+    </main>
+    <footer>
+      
+
+      
+  <span>© 2025 — Ivan Pribec — All rights reserved.</span>
+
+
+
+    </footer>
+
+    
+</body>
+</html>

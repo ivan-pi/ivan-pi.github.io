@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Comparing the performance of findloc | Ivan Pribec</title>
+<meta name="title" content="Comparing the performance of findloc" />
+<meta name="description" content="Searching an array with C&#43;&#43; and Fortran
+Scrolling Twitter (now named X) the other night, I came across the following
+programming bait:
+C devs will tell you this is peak API and Programming Languages design,And nothing better has been invented since 1972. pic.twitter.com/mqELKMVEOb&mdash; Dmitrii Kovanikov (@ChShersh) November 20, 2025 
+One of the C&#43;&#43; proponents in the thread suggested the following &ldquo;ultra-modern&rdquo; solution using
+C&#43;&#43;23 std::views::enumerate:
+std::optional&lt;size_t&gt; find(std::span&lt;const int&gt; items, int x) {
+	for (auto [i, value] : std::views::enumerate(items)) {
+		if (value == x) return i;
+	}
+	return std::nullopt;
+}
+I&rsquo;m a big fan of structured bindings available since C&#43;&#43;17. They can lead to code which is easier to read. Some quick searching shows that an enumerate-like solution was possible already in C&#43;&#43;17, but it is nice to know this is now part of the standard." />
+<meta name="keywords" content="C&#43;&#43;,Fortran,Performance," />
+
+
+<meta property="og:url" content="//localhost:1313/posts/2025/11/comparing-the-performance-of-findloc/">
+  <meta property="og:site_name" content="Ivan Pribec">
+  <meta property="og:title" content="Comparing the performance of findloc">
+  <meta property="og:description" content="Searching an array with C&#43;&#43; and Fortran Scrolling Twitter (now named X) the other night, I came across the following programming bait:
+C devs will tell you this is peak API and Programming Languages design,
+And nothing better has been invented since 1972. pic.twitter.com/mqELKMVEOb
+— Dmitrii Kovanikov (@ChShersh) November 20, 2025 One of the C&#43;&#43; proponents in the thread suggested the following “ultra-modern” solution using C&#43;&#43;23 std::views::enumerate:
+std::optional&lt;size_t&gt; find(std::span&lt;const int&gt; items, int x) { for (auto [i, value] : std::views::enumerate(items)) { if (value == x) return i; } return std::nullopt; } I’m a big fan of structured bindings available since C&#43;&#43;17. They can lead to code which is easier to read. Some quick searching shows that an enumerate-like solution was possible already in C&#43;&#43;17, but it is nice to know this is now part of the standard.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-11-22T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-11-22T00:00:00+00:00">
+    <meta property="article:tag" content="C&#43;&#43;">
+    <meta property="article:tag" content="Fortran">
+    <meta property="article:tag" content="Performance">
+
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Comparing the performance of findloc">
+  <meta name="twitter:description" content="Searching an array with C&#43;&#43; and Fortran Scrolling Twitter (now named X) the other night, I came across the following programming bait:
+C devs will tell you this is peak API and Programming Languages design,
+And nothing better has been invented since 1972. pic.twitter.com/mqELKMVEOb
+— Dmitrii Kovanikov (@ChShersh) November 20, 2025 One of the C&#43;&#43; proponents in the thread suggested the following “ultra-modern” solution using C&#43;&#43;23 std::views::enumerate:
+std::optional&lt;size_t&gt; find(std::span&lt;const int&gt; items, int x) { for (auto [i, value] : std::views::enumerate(items)) { if (value == x) return i; } return std::nullopt; } I’m a big fan of structured bindings available since C&#43;&#43;17. They can lead to code which is easier to read. Some quick searching shows that an enumerate-like solution was possible already in C&#43;&#43;17, but it is nice to know this is now part of the standard.">
+
+
+
+
+  <meta itemprop="name" content="Comparing the performance of findloc">
+  <meta itemprop="description" content="Searching an array with C&#43;&#43; and Fortran Scrolling Twitter (now named X) the other night, I came across the following programming bait:
+C devs will tell you this is peak API and Programming Languages design,
+And nothing better has been invented since 1972. pic.twitter.com/mqELKMVEOb
+— Dmitrii Kovanikov (@ChShersh) November 20, 2025 One of the C&#43;&#43; proponents in the thread suggested the following “ultra-modern” solution using C&#43;&#43;23 std::views::enumerate:
+std::optional&lt;size_t&gt; find(std::span&lt;const int&gt; items, int x) { for (auto [i, value] : std::views::enumerate(items)) { if (value == x) return i; } return std::nullopt; } I’m a big fan of structured bindings available since C&#43;&#43;17. They can lead to code which is easier to read. Some quick searching shows that an enumerate-like solution was possible already in C&#43;&#43;17, but it is nice to know this is now part of the standard.">
+  <meta itemprop="datePublished" content="2025-11-22T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2025-11-22T00:00:00+00:00">
+  <meta itemprop="wordCount" content="1474">
+  <meta itemprop="keywords" content="C&#43;&#43;,Fortran,Performance">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  <style>
+  :root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #222;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-color: #01242e;
+      --heading-color: #eee;
+      --text-color: #ddd;
+      --link-color: #8cc2dd;
+      --visited-color: #8b6fcb;
+      --blockquote-color: #ccc;
+    }
+  }
+
+  body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+  }
+
+  a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  nav a {
+    margin-right: 8px;
+  }
+
+  strong,
+  b {
+    color: var(--heading-color);
+  }
+
+  button {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  time {
+    font-family: monospace;
+    font-style: normal;
+    font-size: 15px;
+  }
+
+  main {
+    line-height: 1.6;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-family: monospace;
+    padding: 2px;
+    border-radius: 3px;
+  }
+
+  blockquote {
+    border-left: 1px solid #999;
+    color: var(--blockquote-color);
+    padding-left: 20px;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 25px 0;
+    text-align: center;
+  }
+
+  .title:hover {
+    text-decoration: none;
+  }
+
+  .title h1 {
+    font-size: 1.5em;
+  }
+
+  .inline {
+    width: auto !important;
+  }
+
+  .highlight,
+  .code {
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+  }
+
+   
+  ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+  }
+
+  ul.blog-posts li {
+    display: flex;
+  }
+
+  ul.blog-posts li span {
+    flex: 0 0 130px;
+  }
+
+  ul.blog-posts li a:visited {
+    color: var(--visited-color);
+  }
+
+</style>
+
+</head>
+
+<body>
+  <header><a href="/" class="title">
+  <h2>Ivan Pribec</h2>
+</a>
+<nav>
+<a href="/posts/">blog</a>
+
+<a href="/code/">code</a>
+
+<a href="/diary/">diary</a>
+
+<a href="/now/">now</a>
+
+</nav>
+</header>
+  <main>
+
+<content>
+  <h2 id="searching-an-array-with-c-and-fortran">Searching an array with C++ and Fortran</h2>
+<p>Scrolling Twitter (now named X) the other night, I came across the following
+programming bait:</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">C devs will tell you this is peak API and Programming Languages design,<br><br>And nothing better has been invented since 1972. <a href="https://t.co/mqELKMVEOb">pic.twitter.com/mqELKMVEOb</a></p>&mdash; Dmitrii Kovanikov (@ChShersh) <a href="https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw">November 20, 2025</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>One of the C++ proponents in the thread suggested the following &ldquo;ultra-modern&rdquo; solution using
+C++23 <a href="https://en.cppreference.com/w/cpp/ranges/enumerate_view.html"><code>std::views::enumerate</code></a>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span>std<span style="color:#f92672">::</span>optional<span style="color:#f92672">&lt;</span>size_t<span style="color:#f92672">&gt;</span> find(std<span style="color:#f92672">::</span>span<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span><span style="color:#f92672">&gt;</span> items, <span style="color:#66d9ef">int</span> x) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">auto</span> [i, value] <span style="color:#f92672">:</span> std<span style="color:#f92672">::</span>views<span style="color:#f92672">::</span>enumerate(items)) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> (value <span style="color:#f92672">==</span> x) <span style="color:#66d9ef">return</span> i;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> std<span style="color:#f92672">::</span>nullopt;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>I&rsquo;m a big fan of structured bindings available since C++17. They can lead to code which is easier to read. Some <a href="https://www.reedbeta.com/blog/python-like-enumerate-in-cpp17/">quick searching</a> shows that an <code>enumerate</code>-like solution was possible already in C++17, but it is nice to know this is now part of the standard.</p>
+<p>One benefit of using <a href="https://en.cppreference.com/w/cpp/utility/optional.html"><code>std::optional</code></a> for the return value is you can use the full range <code>size_t</code> for the returned index.
+In the C-like solution, an empty array or lack of item <code>x</code> would be indicated by a negative value.
+This implies the use of a signed integer type for the result, limiting your range.
+The difference matters if you need to search more than <code>2^31 - 1</code> elements.
+In the types of problems I deal with, this wouldn&rsquo;t be a problem.</p>
+<p>The second benefit of <code>std::optional</code> is the result can be used as a boolean:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">auto</span> res <span style="color:#f92672">=</span> find(items,<span style="color:#ae81ff">42</span>)) {
+</span></span><span style="display:flex;"><span>	std<span style="color:#f92672">::</span>cout <span style="color:#f92672">&lt;&lt;</span> <span style="color:#e6db74">&#34;found element 42 at index &#34;</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#f92672">*</span>res <span style="color:#f92672">&lt;&lt;</span> <span style="color:#e6db74">&#39;\n&#39;</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>where the contained item (the index) is accessed by the familiar dereference operator.
+With the C-like solution you&rsquo;d need to store the result first, and then use it
+in one of two ways:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#66d9ef">auto</span> idx <span style="color:#f92672">=</span> find(items,<span style="color:#ae81ff">10000</span>,<span style="color:#ae81ff">42</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (idx <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>) { <span style="color:#75715e">/* ... */</span> }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// or using a C++17 init-statement
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">auto</span> idx <span style="color:#f92672">=</span> find(items,<span style="color:#ae81ff">10000</span>,<span style="color:#ae81ff">42</span>); idx <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>) { <span style="color:#75715e">/* ... */</span> }
+</span></span></code></pre></div><p>Both options are more verbose than with <code>std::optional</code> and easy to get wrong.
+If we accidentally use <code>idx</code> as the condition, it will use integer to boolean conversion.</p>
+<p>If we limit ourselves to C++20, there are a couple other ways to code the same operation. For instance we could use iterators:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#66d9ef">template</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Iter</span>, <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">T</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>Iter find_iter(Iter begin, Iter end, <span style="color:#66d9ef">const</span> T<span style="color:#f92672">&amp;</span> x) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (Iter it <span style="color:#f92672">=</span> begin; it <span style="color:#f92672">!=</span> end; <span style="color:#f92672">++</span>it) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">*</span>it <span style="color:#f92672">==</span> x) <span style="color:#66d9ef">return</span> it;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> end;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Another option is to just use a range-based for loop:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#66d9ef">template</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">T</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>std<span style="color:#f92672">::</span>optional<span style="color:#f92672">&lt;</span>std<span style="color:#f92672">::</span>size_t<span style="color:#f92672">&gt;</span> find_rbfor(std<span style="color:#f92672">::</span>span<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">const</span> T<span style="color:#f92672">&gt;</span> items, <span style="color:#66d9ef">const</span> T<span style="color:#f92672">&amp;</span> x) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">const</span> T<span style="color:#f92672">&amp;</span> v : items) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (v <span style="color:#f92672">==</span> x) <span style="color:#66d9ef">return</span> std<span style="color:#f92672">::</span>distance(items.data(), <span style="color:#f92672">&amp;</span>v);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> std<span style="color:#f92672">::</span>nullopt;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>We could also do away with looping and just use the <code>std::find</code> algorithm from STL:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#66d9ef">template</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">T</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>std<span style="color:#f92672">::</span>optional<span style="color:#f92672">&lt;</span>std<span style="color:#f92672">::</span>size_t<span style="color:#f92672">&gt;</span> find_find(std<span style="color:#f92672">::</span>span<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">const</span> T<span style="color:#f92672">&gt;</span> items, <span style="color:#66d9ef">const</span> T<span style="color:#f92672">&amp;</span> x) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">auto</span> it <span style="color:#f92672">=</span> std<span style="color:#f92672">::</span>ranges<span style="color:#f92672">::</span>find(items, x);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (it <span style="color:#f92672">==</span> items.end()) <span style="color:#66d9ef">return</span> std<span style="color:#f92672">::</span>nullopt;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> std<span style="color:#f92672">::</span>ranges<span style="color:#f92672">::</span>distance(items.begin(), it);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This example shows one of the difficulties I find personally when working with C++.
+There are often many competing ways to solve the same problem.
+I suppose as long as the code works correctly and the client code is clean any of
+the implementations will do.
+Still, it takes time and effort to develop a good intuition for what is the best one.
+I only use C++ here and there.</p>
+<hr>
+<p>Now when it comes to performance, things are not as straightforward.
+Most CPUs today have some level of SIMD capabilities and it would be nice to know
+if they are used.
+I prepared a micro-benchmark to scan for differences among the variants.
+It can be found in my &ldquo;shed&rdquo; of code snippets.</p>
+<p>For the sake of the experiment, we&rsquo;ll scan an array of doubles of size 32768 (<code>2^15</code>), searching for the last element.
+The resulting time needed is measured on an Apple M2 Pro.</p>
+<p>Using GCC 15.2 I got:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Variant</th>
+          <th>Time (ns)</th>
+          <th>Bandwidth (GiB/s)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>C-like</td>
+          <td>5036</td>
+          <td>50.0</td>
+      </tr>
+      <tr>
+          <td>Iterators</td>
+          <td>10084</td>
+          <td>24.6</td>
+      </tr>
+      <tr>
+          <td>Range-based for</td>
+          <td>10705</td>
+          <td>24.2</td>
+      </tr>
+      <tr>
+          <td><code>find</code> algorithm</td>
+          <td>9847</td>
+          <td>25.0</td>
+      </tr>
+  </tbody>
+</table>
+<p>Using Apple clang version 17 I got:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Variant</th>
+          <th>Time (ns)</th>
+          <th>Bandwidth (GiB/s)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>C-like</td>
+          <td>10342</td>
+          <td>24.0</td>
+      </tr>
+      <tr>
+          <td>Iterators</td>
+          <td>9656</td>
+          <td>25.4</td>
+      </tr>
+      <tr>
+          <td>Range-based for</td>
+          <td>10443</td>
+          <td>23.6</td>
+      </tr>
+      <tr>
+          <td><code>find</code> algorithm</td>
+          <td>10074</td>
+          <td>24.6</td>
+      </tr>
+  </tbody>
+</table>
+<p>In both cases I compiled the benchmark driver with <code>-O3 -mcpu=native</code>.</p>
+<p>Interestingly, the C-like variant is the fastest, and the rest are about half slower.
+Looking into the generated assembly in <a href="https://godbolt.org/z/9v9oTPbM1">Compiler Explorer</a>,
+the C-like variant in GCC gives the following innermost loop:</p>
+<pre tabindex="0"><code>.L7:
+        add     v29.4s, v29.4s, v27.4s
+        cmp     x3, x2
+        beq     .L34
+.L9:
+        ldp     q31, q30, [x2], 32
+        fcmeq   v31.2d, v31.2d, v28.2d
+        fcmeq   v30.2d, v30.2d, v28.2d
+        orr     v31.16b, v31.16b, v30.16b
+        umaxp   v31.4s, v31.4s, v31.4s
+        fmov    x5, d31
+        cbz     x5, .L7
+</code></pre><p>which notably uses 4-way unrolling of the loop and vector comparisons.</p>
+<p>The other variants appear to use 2-way unrolling, which would explain the factor of two difference:</p>
+<pre tabindex="0"><code>.L40:
+        add     v30.2d, v30.2d, v28.2d
+        cmp     x5, x1
+        beq     .L55
+.L43:
+        lsl     x2, x1, 4
+        add     x1, x1, 1
+        ldr     q31, [x4, x2]
+        fcmeq   v31.2d, v31.2d, v29.2d
+        umaxp   v31.4s, v31.4s, v31.4s
+        fmov    x2, d31
+        cbz     x2, .L40
+</code></pre><p>With <code>clang</code> on the other hand, all variants use loop nests with scalar instructions:</p>
+<pre tabindex="0"><code>.LBB0_3:
+        ldr     d1, [x8, x0, lsl #3]
+        fcmp    d1, d0
+        b.eq    .LBB0_6
+        add     x0, x0, #1
+        cmp     x9, x0
+        b.ne    .LBB0_3
+</code></pre><p>I was interested in what the Intel C++ Compiler would do (the LLVM).
+Interestingly, only the C-like variant appears to be vectorized.
+Targetting the Skylake architecture, it produces a long innermost loop section:</p>
+<pre tabindex="0"><code>.LBB0_16:
+        lea     rbx, [r11 + 8*r9]
+        vcmpeqpd        ymm2, ymm1, ymmword ptr [rbx]
+        vcmpeqpd        ymm3, ymm1, ymmword ptr [rbx + 32]
+        vpackssdw       ymm2, ymm2, ymm3
+        vcmpeqpd        ymm3, ymm1, ymmword ptr [rbx + 64]
+        vpermq  ymm2, ymm2, 216
+        vcmpeqpd        ymm4, ymm1, ymmword ptr [rbx + 96]
+        vpackssdw       ymm3, ymm3, ymm4
+        vpermq  ymm3, ymm3, 216
+        vpackssdw       ymm2, ymm2, ymm3
+        vpermq  ymm2, ymm2, 216
+        vcmpeqpd        ymm3, ymm1, ymmword ptr [rbx + 128]
+        vcmpeqpd        ymm4, ymm1, ymmword ptr [rbx + 160]
+        vpackssdw       ymm3, ymm3, ymm4
+        vpermq  ymm3, ymm3, 216
+        vcmpeqpd        ymm4, ymm1, ymmword ptr [rbx + 192]
+        vcmpeqpd        ymm5, ymm1, ymmword ptr [rbx + 224]
+        vpackssdw       ymm4, ymm4, ymm5
+        vpermq  ymm4, ymm4, 216
+        vpackssdw       ymm3, ymm3, ymm4
+        vpermq  ymm3, ymm3, 216
+        vpacksswb       ymm2, ymm2, ymm3
+        vpmovmskb       ebx, ymm2
+        test    ebx, ebx
+        jne     .LBB0_17
+        add     r9, 32
+        cmp     r9, r10
+        jbe     .LBB0_16
+</code></pre><p>working in chunks of 32 (8 memory references, 4 doubles per YMM register).</p>
+<p>I did not attempt to measure the performance on an AMD64 machine.</p>
+<h3 id="fortran-findloc-intrinsic">Fortran <code>findloc</code> intrinsic</h3>
+<p>In Fortran we can use the <code>findloc</code> intrinsic function for this purpose.
+I implemented a little C-compatible wrapper function, which can be called also from C++:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#75715e">! int find_fortran(double items[], int size, double item);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">function</span> find_fortran(items, size, item) <span style="color:#66d9ef">bind</span>(c)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span>, <span style="color:#66d9ef">intrinsic</span> <span style="color:#66d9ef">::</span> iso_c_binding
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">none</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">integer</span>(<span style="color:#66d9ef">c_int</span>), <span style="color:#66d9ef">value</span> <span style="color:#66d9ef">::</span> size
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">real</span>(<span style="color:#66d9ef">c_double</span>), <span style="color:#66d9ef">intent</span>(in) <span style="color:#66d9ef">::</span> items(size)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">real</span>(<span style="color:#66d9ef">c_double</span>), <span style="color:#66d9ef">intent</span>(in), <span style="color:#66d9ef">value</span> <span style="color:#66d9ef">::</span> item
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">integer</span>(<span style="color:#66d9ef">c_int</span>) <span style="color:#66d9ef">::</span> find_fortran
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    find_fortran <span style="color:#f92672">=</span> findloc(items,item,dim<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">end</span> <span style="color:#66d9ef">function</span>
+</span></span></code></pre></div><p>One minor difference is since Fortran uses 1-based indexing by default, Fortran
+uses 0 to indicate absence of the item.</p>
+<p>For completeness we will also look at a loop-based version:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#75715e">! int find_fortran(double items[], int size, double item);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">function</span> find_fortran_loop(items,size,item) <span style="color:#66d9ef">bind</span>(c) <span style="color:#66d9ef">result</span>(idx)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span>, <span style="color:#66d9ef">intrinsic</span> <span style="color:#66d9ef">::</span> iso_c_binding
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">none</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">integer</span>(<span style="color:#66d9ef">c_int</span>), <span style="color:#66d9ef">value</span> <span style="color:#66d9ef">::</span> size
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">real</span>(<span style="color:#66d9ef">c_double</span>), <span style="color:#66d9ef">intent</span>(in) <span style="color:#66d9ef">::</span> items(size)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">real</span>(<span style="color:#66d9ef">c_double</span>), <span style="color:#66d9ef">intent</span>(in), <span style="color:#66d9ef">value</span> <span style="color:#66d9ef">::</span> item
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">integer</span>(<span style="color:#66d9ef">c_int</span>) <span style="color:#66d9ef">::</span> idx
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">integer</span> <span style="color:#66d9ef">::</span> i
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">do</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>, size
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (item <span style="color:#f92672">==</span> items(i)) <span style="color:#66d9ef">then</span>
+</span></span><span style="display:flex;"><span>            idx <span style="color:#f92672">=</span> i
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">end</span> <span style="color:#66d9ef">if</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">end</span> <span style="color:#66d9ef">do</span>
+</span></span><span style="display:flex;"><span>    idx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">end</span> <span style="color:#66d9ef">function</span>
+</span></span></code></pre></div><p>For the tests we&rsquo;ll be using gfortran 15.2 and flang 20.1, in both cases using <code>-O3 -mcpu=apple-m2</code>.</p>
+<p>The performance results look the following:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Compiler</th>
+          <th>Time (ns)</th>
+          <th>Bandwidth (GiB/s)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>gfortran <code>findloc</code></td>
+          <td>10276</td>
+          <td>24.5</td>
+      </tr>
+      <tr>
+          <td>gfortran loop</td>
+          <td>5164</td>
+          <td>48.2</td>
+      </tr>
+      <tr>
+          <td>flang <code>findloc</code></td>
+          <td>48434</td>
+          <td>5.0</td>
+      </tr>
+      <tr>
+          <td>flang loop</td>
+          <td>10461</td>
+          <td>23.7</td>
+      </tr>
+  </tbody>
+</table>
+<p>With gfortran the performance is comparable to the other GCC results.
+The difference between <code>findloc</code> and raw loops comes again down to the implicit compiler choice between 2-way and 4-way unrolling.</p>
+<p>On the other hand <code>findloc</code> in <code>flang</code> appears to be quite slow compared with our other variants.
+We can look for an explanation for the low performance by peaking into the assembly.
+In contrast to <code>gfortran</code> which appears to inline the <code>findloc</code> operation directly into the function, flang defers the work to a function from the flang runtime library:</p>
+<pre tabindex="0"><code>	bl	__FortranAFindlocDim
+</code></pre><p>The <code>bl</code> instructions stands for &ldquo;Branch with Link&rdquo; and is essentially a subroutine call.
+The implementation can be found in the <a href="https://github.com/llvm/llvm-project/blob/2e424deeb6180d112323f4df955c8034eb56780c/flang-rt/lib/runtime/findloc.cpp#L317">LLVM repository</a>.
+For the record, I&rsquo;m using flang installed via the <code>brew</code> package manager.
+Maybe with a few tweaks of the LLVM compilation flags the performance would improve?</p>
+<p>For completeness, I also checked the Intel Fortran compilers.
+Neither ifort 2021.11 (the last pre-deprecation release) nor ifx 2024.0.0 (both as available on Compiler Explorer) vectorize the loop, simply using scalar instructions instead.</p>
+<p>So if you need a fast search over an array of doubles, and performance is the priority, a straightforward hand-written loop still seems to be the most efficient option, even if not the of peak API or programming language design.</p>
+
+</content>
+
+
+
+<p>
+  
+  <a href="//localhost:1313/tags/c&#43;&#43;/">#C&#43;&#43;</a>
+  
+  <a href="//localhost:1313/tags/fortran/">#Fortran</a>
+  
+  <a href="//localhost:1313/tags/performance/">#Performance</a>
+  
+</p>
+
+  </main>
+  <footer>Made with <a href="https://github.com/janraasch/hugo-bearblog/">Hugo ʕ•ᴥ•ʔ Bear</a>
+</footer>
+
+  
+</body>
+
+</html>
