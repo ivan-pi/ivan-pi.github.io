@@ -2,28 +2,10 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>/tags/fortran/</loc>
-    <lastmod>2025-11-23T00:00:00+01:00</lastmod>
-  </url><url>
     <loc>/</loc>
     <lastmod>2025-11-23T00:00:00+01:00</lastmod>
   </url><url>
-    <loc>/posts/2025/11/measuring-the-performance-of-the-norm2-intrinsic/</loc>
-    <lastmod>2025-11-23T00:00:00+01:00</lastmod>
-  </url><url>
-    <loc>/tags/norm2/</loc>
-    <lastmod>2025-11-23T00:00:00+01:00</lastmod>
-  </url><url>
-    <loc>/tags/performance/</loc>
-    <lastmod>2025-11-23T00:00:00+01:00</lastmod>
-  </url><url>
     <loc>/posts/</loc>
-    <lastmod>2025-11-23T00:00:00+01:00</lastmod>
-  </url><url>
-    <loc>/tags/simd/</loc>
-    <lastmod>2025-11-23T00:00:00+01:00</lastmod>
-  </url><url>
-    <loc>/tags/</loc>
     <lastmod>2025-11-23T00:00:00+01:00</lastmod>
   </url><url>
     <loc>/tags/c&#43;&#43;/</loc>
@@ -32,7 +14,16 @@
     <loc>/tags/findloc/</loc>
     <lastmod>2025-11-22T00:00:00+01:00</lastmod>
   </url><url>
+    <loc>/tags/fortran/</loc>
+    <lastmod>2025-11-22T00:00:00+01:00</lastmod>
+  </url><url>
     <loc>/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</loc>
+    <lastmod>2025-11-22T00:00:00+01:00</lastmod>
+  </url><url>
+    <loc>/tags/performance/</loc>
+    <lastmod>2025-11-22T00:00:00+01:00</lastmod>
+  </url><url>
+    <loc>/tags/</loc>
     <lastmod>2025-11-22T00:00:00+01:00</lastmod>
   </url><url>
     <loc>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</loc>
