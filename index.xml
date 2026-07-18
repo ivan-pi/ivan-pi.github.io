@@ -970,42 +970,6 @@ katex: &#34;true&#34;</code></pre>
 <li><a href="https://jsfiddle.net/p9du5Lgq/5/?utm_source=website&amp;utm_medium=embed&amp;utm_campaign=p9du5Lgq">KaTeX \tag hack</a></li>
 <li><a href="https://github.com/KaTeX/KaTeX/issues/350">Equation numbering (KaTeX issue)</a></li>
 </ul>
-]]></content:encoded></item><item><title/><link>https://ivan-pi.github.io/posts/1/01/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/posts/1/01/</guid><description>&lt;h1 id="is-fortran-all-we-need-for-performance"&gt;Is Fortran all we need for performance?&lt;/h1&gt;
-&lt;p&gt;There are many myths out in the wild:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;you just need C++&lt;/li&gt;
-&lt;li&gt;you just need Fortran&lt;/li&gt;
-&lt;li&gt;you just need BLAS&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Telling the true from the false is&lt;/p&gt;
-&lt;p&gt;Design an API which encapsulates the operations you need.
-If performance is not good enough, seek to implement them by other means.&lt;/p&gt;
-&lt;p&gt;In practice we see that array reductions hardly reach the peak.&lt;/p&gt;
-&lt;p&gt;Even a memory copy won&amp;rsquo;t use nontemporal stores unless instructed too.&lt;/p&gt;</description><content:encoded><![CDATA[<h1 id="is-fortran-all-we-need-for-performance">Is Fortran all we need for performance?</h1>
-<p>There are many myths out in the wild:</p>
-<ul>
-<li>you just need C++</li>
-<li>you just need Fortran</li>
-<li>you just need BLAS</li>
-</ul>
-<p>Telling the true from the false is</p>
-<p>Design an API which encapsulates the operations you need.
-If performance is not good enough, seek to implement them by other means.</p>
-<p>In practice we see that array reductions hardly reach the peak.</p>
-<p>Even a memory copy won&rsquo;t use nontemporal stores unless instructed too.</p>
-]]></content:encoded></item><item><title/><link>https://ivan-pi.github.io/posts/1/01/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/posts/1/01/</guid><description>&lt;p&gt;SIMD Libraries&lt;/p&gt;
-&lt;p&gt;Generic SIMD
-&lt;a href="https://github.com/genericsimd/generic_simd/"&gt;https://github.com/genericsimd/generic_simd/&lt;/a&gt;
-&lt;a href="https://doi.org/10.1145/2568058.2568059"&gt;https://doi.org/10.1145/2568058.2568059&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;Google Highway
-&lt;a href="https://google.github.io/highway/en/master/"&gt;https://google.github.io/highway/en/master/&lt;/a&gt;
-&lt;a href="https://github.com/google/highway"&gt;https://github.com/google/highway&lt;/a&gt;&lt;/p&gt;</description><content:encoded><![CDATA[<p>SIMD Libraries</p>
-<p>Generic SIMD
-<a href="https://github.com/genericsimd/generic_simd/">https://github.com/genericsimd/generic_simd/</a>
-<a href="https://doi.org/10.1145/2568058.2568059">https://doi.org/10.1145/2568058.2568059</a></p>
-<p>Google Highway
-<a href="https://google.github.io/highway/en/master/">https://google.github.io/highway/en/master/</a>
-<a href="https://github.com/google/highway">https://github.com/google/highway</a></p>
 ]]></content:encoded></item><item><title>Code development</title><link>https://ivan-pi.github.io/code/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/code/</guid><description>&lt;p&gt;In my free time I like to work on scientific coding projects in Fortran.&lt;/p&gt;
 &lt;h2 id="fortran-interfaces"&gt;Fortran interfaces&lt;/h2&gt;
 &lt;p&gt;Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic &lt;code&gt;iso_c_binding&lt;/code&gt; module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C++ and vice versa.&lt;/p&gt;
@@ -1026,34 +990,56 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <li><a href="https://github.com/ivan-pi/stroud_quad">Quadrature routines from Stroud &amp; Secrest</a> - An updated version of the routines from the book <em>Gaussian quadrature formulas</em> by A. H. Stroud and D. Secrest published in 1966. Includes routines for generatics the knots and weights of the classic Jacobi, Laguerre, and Hermite quadratures.</li>
 <li><a href="https://github.com/ivan-pi/fortran_lsp">Least squares solvers from Lawson &amp; Hanson</a> - This package contains the routines from the book <em>Solving least squares problems</em> by Lawson and Hanson (1995). Most of the routines date back to the 1974 version of the book and were developed for use at the NASA Jet Propulsion Laboratory in California, Pasadena. I have tried to modernize the interfaces of most of the subroutines. The non-negative least squares solver <code>nnls</code> appears also in <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.nnls.html"><code>scipy.optimize.nnls</code></a>.</li>
 </ul>
-]]></content:encoded></item><item><title>Diary</title><link>https://ivan-pi.github.io/diary/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/diary/</guid><description>&lt;p&gt;A chronological collection of things I&amp;rsquo;ve found interesting.&lt;/p&gt;
-&lt;h2 id="2026-05-28"&gt;2026-05-28&lt;/h2&gt;
+]]></content:encoded></item><item><title>Diary</title><link>https://ivan-pi.github.io/links/diary/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/links/diary/</guid><description>&lt;p&gt;A chronological collection of things I&amp;rsquo;ve found interesting. Back to &lt;a href="https://ivan-pi.github.io/links/"&gt;links&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id="2026-07-18"&gt;2026-07-18&lt;/h2&gt;
+&lt;p&gt;GPU &amp;amp; Accelerated Computing:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://www.sigarch.org/architecture-systems-are-changing-the-architects-role-in-the-era-of-agentic-co-design/"&gt;Architecture &amp;amp; Systems are Changing: The Architect’s Role in the Era of Agentic Co-Design | Computer Architecture Today&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://developer.arm.com/community/arm-community-blogs/b/servers-and-cloud-computing-blog/posts/what-s-new-in-arm-performance-libraries-26-01"&gt;What&amp;rsquo;s new in Arm Performance Libraries 26.01 | Arm Developer Community&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://developer.arm.com/community/arm-community-blogs/b/servers-and-cloud-computing-blog/posts/perf-libs-sparse-on-arm"&gt;perf-libs-sparse: Introducing a new open-source project for sparse linear algebra on Arm | Arm Developer Community&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://www.phoronix.com/review/nvidia-vera-benchmarks"&gt;NVIDIA Vera CPU Benchmarks: Olympus Cores Delivering The Best Performance Ever Seen On ARM | Phoronix&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://epubs.stfc.ac.uk/manifestation/4395/RAL_TR_2009_019.pdf"&gt;Code Coverage Analysis for Fortran | Science and Technology Facilities Council Rutherford Appleton Laboratory&lt;/a&gt; (PDF)&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://davidoks.blog/p/why-japanese-companies-do-so-many"&gt;Why Japanese companies do so many different things | David Oks&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://youtu.be/Fa_KqW7np14?si=yVGbeF7bZ__55GXP"&gt;Advancing Computational Science with High-Order Finite Elements | Supercomputing Spotlights&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://borretti.me/article/human-bottlenecks"&gt;Human Bottlenecks | Fernando Borretti&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://www.thonking.ai/p/strangely-matrix-multiplications"&gt;Strangely, Matrix Multiplications on GPUs Run Faster When Given &amp;ldquo;Predictable&amp;rdquo; Data! | Thonk From First Principles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://pub.towardsai.net/cuda-tile-gpu-programming-model-1a4bc93ae9b4"&gt;NVIDIA Took 20 Years to Ship 25 Lines of Python | Delanoe Pirard, Medium&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://hyper.ai/en/news/47715"&gt;Can the Tile Paradigm Reshape the Competitive Landscape of the GPU Programming Ecosystem? | HyperAI&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.aleksagordic.com/blog/collective-operations"&gt;Inside TPU and GPU Clusters: The Anatomy of Collective Communication | Aleksa Gordić&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://rocm.blogs.amd.com/software-tools-optimization/porting-hip-flydsl/README.html"&gt;Porting High-Performance HIP Kernels to FlyDSL | AMD ROCm Blogs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://developers.redhat.com/articles/2026/02/19/understanding-aten-pytorchs-tensor-library#"&gt;Understanding ATen: PyTorch&amp;rsquo;s tensor library | Red Hat Developer&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/NVIDIA/matx"&gt;MatX - GPU-Accelerated Numerical Computing in Modern C++ | NVIDIA&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.smish.dev/programming/metal_compute_cpp/metal_compute_cpp.pdf"&gt;Metal Compute Shaders And C++&lt;/a&gt; (PDF)&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h2 id="2026-05-22"&gt;2026-05-22&lt;/h2&gt;
+&lt;p&gt;Linear Algebra:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=""&gt;Alan Hindmarsh&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=""&gt;ODEPACK: A systematicized collection&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=""&gt;ODE Meeting Argonne&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://news.ycombinator.com/item?id=47644703"&gt;Show HN: LAPACK without Fortran77; a C11 translation (github.com/ilayn)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/ilayn/semicolon-lapack"&gt;semicolon-lapack&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h2 id="2026-05-03"&gt;2026-05-03&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://physics.aps.org/articles/v19/53"&gt;Let Natural Selection Sharpen Your Writing | American Physical Society&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://doi.org/10.1038/s44222-025-00323-4"&gt;Writing is thinking | nature reviews bioengineering&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="2026-04-25"&gt;2026-04-25&lt;/h2&gt;
-&lt;p&gt;Object-oriented Design Principles:&lt;/p&gt;</description><content:encoded><![CDATA[<p>A chronological collection of things I&rsquo;ve found interesting.</p>
+&lt;p&gt;AI Compute Extensions (ACE):&lt;/p&gt;</description><content:encoded><![CDATA[<p>A chronological collection of things I&rsquo;ve found interesting. Back to <a href="/links/">links</a>.</p>
+<h2 id="2026-07-18">2026-07-18</h2>
+<p>GPU &amp; Accelerated Computing:</p>
+<ul>
+<li><a href="https://www.aleksagordic.com/blog/collective-operations">Inside TPU and GPU Clusters: The Anatomy of Collective Communication | Aleksa Gordić</a></li>
+<li><a href="https://rocm.blogs.amd.com/software-tools-optimization/porting-hip-flydsl/README.html">Porting High-Performance HIP Kernels to FlyDSL | AMD ROCm Blogs</a></li>
+<li><a href="https://developers.redhat.com/articles/2026/02/19/understanding-aten-pytorchs-tensor-library#">Understanding ATen: PyTorch&rsquo;s tensor library | Red Hat Developer</a></li>
+<li><a href="https://github.com/NVIDIA/matx">MatX - GPU-Accelerated Numerical Computing in Modern C++ | NVIDIA</a></li>
+<li><a href="https://www.smish.dev/programming/metal_compute_cpp/metal_compute_cpp.pdf">Metal Compute Shaders And C++</a> (PDF)</li>
+</ul>
+<p>Linear Algebra:</p>
+<ul>
+<li><a href="https://news.ycombinator.com/item?id=47644703">Show HN: LAPACK without Fortran77; a C11 translation (github.com/ilayn)</a></li>
+<li><a href="https://github.com/ilayn/semicolon-lapack">semicolon-lapack</a></li>
+</ul>
+<p>AI Compute Extensions (ACE):</p>
+<ul>
+<li><a href="https://www.phoronix.com/news/Intel-GCC-ACE-AI-Patches">Intel Posts Initial GCC Compiler Patches For AI Compute Extensions &ldquo;ACE&rdquo; | Phoronix</a></li>
+<li><a href="https://x86ecosystem.org/wp-content/uploads/2026/03/ACE-Whitepaper-v1.pdf">The AI Compute Extensions (ACE) for x86</a> (PDF, 147 KB)</li>
+</ul>
+<p>Finite Elements &amp; CFD:</p>
+<ul>
+<li><a href="https://www.smish.dev/programming/dynamic_kernel_refactor/">Templated FEM kernels: Benefits and Drawbacks</a></li>
+<li><a href="https://blog.3ds.com/brands/simulia/from-particles-grid-wind-tunnel-digital-rival-rise-lbm-defense-aviation/">From Particles on a Grid to the Wind Tunnel’s Digital Rival: The Rise of LBM in Defense Aviation | Dassault Systèmes SIMULIA</a></li>
+</ul>
+<p>Programming:</p>
+<ul>
+<li><a href="https://chandlerc.blog/posts/2024/11/story-time-bounds-checking/">Story-time: C++, bounds checking, performance, and compilers | Chandler Carruth</a></li>
+<li><a href="https://cautomaton.com/articles/second-coming-of-the-command-line/">The Second Coming of the Command Line</a></li>
+</ul>
+<p>Life Advice:</p>
+<ul>
+<li><a href="https://cacm.acm.org/opinion/life-lessons-from-the-first-half-century-of-my-career/">Life Lessons from the First Half-Century of My Career | Communications of the ACM</a></li>
+<li><a href="https://www.bbc.com/culture/article/20260713-what-the-middle-ages-can-teach-us-about-burnout">What the Middle Ages can teach us about preventing burnout | BBC Culture</a></li>
+</ul>
 <h2 id="2026-05-28">2026-05-28</h2>
 <ul>
 <li><a href="https://www.sigarch.org/architecture-systems-are-changing-the-architects-role-in-the-era-of-agentic-co-design/">Architecture &amp; Systems are Changing: The Architect’s Role in the Era of Agentic Co-Design | Computer Architecture Today</a></li>
@@ -1071,7 +1057,7 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <h2 id="2026-05-22">2026-05-22</h2>
 <ul>
 <li><a href="">Alan Hindmarsh</a></li>
-<li><a href="">ODEPACK: A systematicized collection</a></li>
+<li><a href="">ODEPACK: A systematized collection</a></li>
 <li><a href="">ODE Meeting Argonne</a></li>
 </ul>
 <h2 id="2026-05-03">2026-05-03</h2>
@@ -1084,7 +1070,6 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <ul>
 <li><a href="https://www.infoworld.com/article/2161183/why-getter-and-setter-methods-are-evil.html">Why getter and setter methods are evil</a></li>
 <li><a href="https://www.yegor256.com/2014/09/16/getters-and-setters-are-evil.html">Getters/Setters. Evil. Period.</a></li>
-<li></li>
 </ul>
 <p>Misc:</p>
 <ul>
@@ -1161,7 +1146,7 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <li><a href="https://softwareengineering.stackexchange.com/questions/322788/most-efficient-method-for-large-switch-statements?noredirect=1&amp;lq=1">Most efficient method for large switch statements</a></li>
 </ul>
 <h2 id="2026-03-20">2026-03-20</h2>
-<p>Intepreters:</p>
+<p>Interpreters:</p>
 <ul>
 <li><a href="https://www.jonathanmueller.dev/talk/deep-dive-dispatch/">A Deep Dive into Dispatching Techniques | Jonathan Müller</a></li>
 <li><a href="https://blog.reverberate.org/2021/04/21/musttail-efficient-interpreters.html">Parsing Protobuf at 2+GB/s: How I Learned To Love Tail Calls in C | Josh Haberman</a></li>
@@ -1215,7 +1200,7 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <li><a href="https://doi.org/10.1002/spe.4380030203">Serious FORTRAN (1973)</a></li>
 <li><a href="https://doi.org/10.1002/spe.4380030303">Serious FORTRAN—Part 2 (1973)</a></li>
 <li><a href="https://doi.org/10.1002/spe.4380111006">Fortran 77 portability (1981)</a></li>
-<li>[A fortran procedure for drawing some space-filling curves (1986)](<a href="https://doi.org/10.1002/spe.4380160607">https://doi.org/10.1002/spe.4380160607</a></li>
+<li><a href="https://doi.org/10.1002/spe.4380160607">A fortran procedure for drawing some space-filling curves (1986)</a></li>
 <li><a href="https://www.cs.unc.edu/~stotts/COMP145/modules.html">Module coupling and cohesion (COMP145, 2000)</a> (see <a href="https://www.cs.unc.edu/~stotts/COMP145/">Team Software Engineering</a> course homepage)</li>
 <li><a href="https://dl.acm.org/doi/pdf/10.1145/181593.181602">Multibox Parsers (1994)</a> (PDF, 702 KB)</li>
 <li><a href="https://doi.org/10.1109/52.406759">Multibox parsers: no more handwritten lexical parsers</a></li>
@@ -1254,7 +1239,7 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <ul>
 <li><a href="https://www.stat.auckland.ac.nz/~ihaka/downloads/Interface98.pdf">R: Past and Future History | Ross Ihaka</a> (PDF, 92.5 KB)</li>
 <li><a href="https://sas.uwaterloo.ca/~rwoldfor/software/R-code/historyOfS.pdf">A Brief History of S | Richard A. Becker</a> (PDF, 151 KB)</li>
-<li><a href="https://www.r-project.org/conferences/useR-2006/Slides/Chambers.pdf">History of S and R | John Chamers</a> (PDF, 234 KB)</li>
+<li><a href="https://www.r-project.org/conferences/useR-2006/Slides/Chambers.pdf">History of S and R | John Chambers</a> (PDF, 234 KB)</li>
 <li><a href="https://bookdown.org/rdpeng/rprogdatascience/history-and-overview-of-r.html">History and Overview of R | R Programming for Data Science</a></li>
 <li><a href="https://epub.ub.uni-muenchen.de/2085/1/tr012.pdf">R behind the scenes: Using S the (un)usual way | Friedrich Leisch</a> (PDF, 1357 KB)</li>
 </ul>
@@ -1270,18 +1255,18 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 </ul>
 <p>Co-Array Fortran Articles:</p>
 <ul>
-<li>Numrich, R. W., Reid, J., &amp; Kim, K. (1998, June). Writing a multigrid solver using co-array fortran. In International Workshop on Applied Parallel Computing (pp. 390-399). Berlin, Heidelberg: Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/BFb0095362">https://doi.org/10.1007/BFb0095362</a></li>
-<li>Dotsenko, Y., Coarfa, C., &amp; Mellor-Crummey, J. (2004, October). A multi-platform co-array fortran compiler. In Proceedings. 13th International Conference on Parallel Architecture and Compilation Techniques, 2004. PACT 2004. (pp. 29-40). IEEE. <a href="https://dl.acm.org/doi/10.5555/1025127.1025994">https://dl.acm.org/doi/10.5555/1025127.1025994</a></li>
-<li>Numrich, R. W., &amp; Reid, J. (2005, August). Co-arrays in the next Fortran standard. In ACM SIGPLAN Fortran Forum (Vol. 24, No. 2, pp. 4-17). New York, NY, USA: ACM. <a href="https://doi.org/10.1145/1080399.1080400">https://doi.org/10.1145/1080399.1080400</a></li>
-<li>Numrich, R. W. (2005, September). A parallel numerical library for co-array Fortran. In International Conference on Parallel Processing and Applied Mathematics (pp. 960-969). Berlin, Heidelberg: Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/11752578_116">https://doi.org/10.1007/11752578_116</a></li>
-<li>Numrich, R. W. (2005). Parallel numerical algorithms based on tensor notation and Co-Array Fortran syntax. Parallel Computing, 31(6), 588-607. <a href="https://doi.org/10.1016/j.parco.2005.03.003">https://doi.org/10.1016/j.parco.2005.03.003</a></li>
-<li>Mellor-Crummey, J., Adhianto, L., Scherer III, W. N., &amp; Jin, G. (2009, October). A new vision for Coarray Fortran. In Proceedings of the Third Conference on Partitioned Global Address Space Programing Models (pp. 1-9). <a href="https://doi.org/10.1145/1809961.1809969">https://doi.org/10.1145/1809961.1809969</a></li>
-<li>Eachempati, D., Jun, H. J., &amp; Chapman, B. (2010, October). An open-source compiler and runtime implementation for Coarray Fortran. In Proceedings of the Fourth Conference on Partitioned Global Address Space Programming Model (pp. 1-8). <a href="https://doi.org/10.1145/2020373.2020386">https://doi.org/10.1145/2020373.2020386</a></li>
-<li>Eachempati, D., Richardson, A., Liao, T., Calandra, H., &amp; Chapman, B. (2012, November). A coarray fortran implementation to support data-intensive application development. In 2012 SC Companion: High Performance Computing, Networking Storage and Analysis (pp. 771-776). IEEE. <a href="https://doi.org/10.1109/SC.Companion.2012.106">https://doi.org/10.1109/SC.Companion.2012.106</a></li>
-<li>Mallinson, A. C., Jarvis, S. A., Gaudin, W. P., &amp; Herdman, J. A. (2014, October). Experiences at scale with PGAS versions of a Hydrodynamics application. In Proceedings of the 8th International Conference on Partitioned Global Address Space Programming Models (pp. 1-11). <a href="https://doi.org/10.1145/2676870.2676873">https://doi.org/10.1145/2676870.2676873</a></li>
-<li>Garain, S., Balsara, D. S., &amp; Reid, J. (2015). Comparing Coarray Fortran (CAF) with MPI for several structured mesh PDE applications. Journal of Computational Physics, 297, 237-253. <a href="https://doi.org/10.1016/j.jcp.2015.05.020">https://doi.org/10.1016/j.jcp.2015.05.020</a></li>
-<li>Sharma, A., &amp; Moulitsas, I. (2017). MPI to Coarray Fortran: experiences with a CFD solver for unstructured meshes. Scientific Programming, 2017(1), 3409647. <a href="https://doi.org/10.1155/2017/3409647">https://doi.org/10.1155/2017/3409647</a></li>
-<li>McKevitt, J., Vorobyov, E. I., &amp; Kulikov, I. (2025). Accelerating Fortran codes: A method for integrating Coarray Fortran with CUDA Fortran and OpenMP. Journal of Parallel and Distributed Computing, 195, 104977. <a href="https://doi.org/10.1016/j.jpdc.2024.104977">https://doi.org/10.1016/j.jpdc.2024.104977</a></li>
+<li><a href="https://doi.org/10.1007/BFb0095362">Writing a multigrid solver using co-array fortran (1998) | Numrich et al.</a></li>
+<li><a href="https://dl.acm.org/doi/10.5555/1025127.1025994">A multi-platform co-array fortran compiler (2004) | Dotsenko et al.</a></li>
+<li><a href="https://doi.org/10.1145/1080399.1080400">Co-arrays in the next Fortran standard (2005) | Numrich &amp; Reid</a></li>
+<li><a href="https://doi.org/10.1007/11752578_116">A parallel numerical library for co-array Fortran (2005) | Numrich</a></li>
+<li><a href="https://doi.org/10.1016/j.parco.2005.03.003">Parallel numerical algorithms based on tensor notation and Co-Array Fortran syntax (2005) | Numrich</a></li>
+<li><a href="https://doi.org/10.1145/1809961.1809969">A new vision for Coarray Fortran (2009) | Mellor-Crummey et al.</a></li>
+<li><a href="https://doi.org/10.1145/2020373.2020386">An open-source compiler and runtime implementation for Coarray Fortran (2010) | Eachempati et al.</a></li>
+<li><a href="https://doi.org/10.1109/SC.Companion.2012.106">A coarray fortran implementation to support data-intensive application development (2012) | Eachempati et al.</a></li>
+<li><a href="https://doi.org/10.1145/2676870.2676873">Experiences at scale with PGAS versions of a Hydrodynamics application (2014) | Mallinson et al.</a></li>
+<li><a href="https://doi.org/10.1016/j.jcp.2015.05.020">Comparing Coarray Fortran (CAF) with MPI for several structured mesh PDE applications (2015) | Garain et al.</a></li>
+<li><a href="https://doi.org/10.1155/2017/3409647">MPI to Coarray Fortran: experiences with a CFD solver for unstructured meshes (2017) | Sharma &amp; Moulitsas</a></li>
+<li><a href="https://doi.org/10.1016/j.jpdc.2024.104977">Accelerating Fortran codes: A method for integrating Coarray Fortran with CUDA Fortran and OpenMP (2025) | McKevitt et al.</a></li>
 </ul>
 <p>Fortran debate:</p>
 <ul>
@@ -1294,12 +1279,12 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <p>Nvidia PTX Resources:</p>
 <ul>
 <li><a href="https://developer.nvidia.com/blog/understanding-ptx-the-assembly-language-of-cuda-gpu-computing/">Understanding PTX, the Assembly Language of CUDA GPU Computing | Nvidia</a></li>
-<li><a href="https://developer.nvidia.com/blog/advanced-nvidia-cuda-kernel-optimization-techniques-handwritten-ptx/">Advanded NVIDIA CUDA Kernel Optimiziazion Techniques: Handwritten PTX | Nvidia</a></li>
+<li><a href="https://developer.nvidia.com/blog/advanced-nvidia-cuda-kernel-optimization-techniques-handwritten-ptx/">Advanced NVIDIA CUDA Kernel Optimization Techniques: Handwritten PTX | Nvidia</a></li>
 <li><a href="https://docs.nvidia.com/cuda/inline-ptx-assembly/index.html">Inline PTX Assembly in CUDA | Nvidia</a></li>
 <li><a href="https://modal.com/gpu-glossary/device-software/parallel-thread-execution">What is Parallel Thread Execution? | Modal</a></li>
 <li><a href="https://eunomia.dev/others/cuda-tutorial/02-ptx-assembly/">Tutorial: Understanding GPU Assembly with PTX | eunomia</a></li>
 <li><a href="https://docs.nvidia.com/cuda/parallel-thread-execution/">Parallel Thread Execution ISA Version 9.1 | Nvidia</a></li>
-<li><a href="https://docs.nvidia.com/cuda/archive/8.0/parallel-thread-execution/">Parallel Thread Execustion ISA Version 5.0 | Nvidia</a></li>
+<li><a href="https://docs.nvidia.com/cuda/archive/8.0/parallel-thread-execution/">Parallel Thread Execution ISA Version 5.0 | Nvidia</a></li>
 <li><a href="https://docs.nvidia.com/cuda/archive/10.0/parallel-thread-execution/index.html">Parallel Thread Execution ISA Version 6.3 | Nvidia</a></li>
 <li><a href="https://developer.download.nvidia.com/compute/DevZone/docs/html/C/doc/ptx_isa_3.0.pdf">Parallel Thread Execution ISA Version 3.0 | Nvidia</a> (PDF, 2.2 MB)</li>
 <li><a href="https://www.cs.cmu.edu/afs/cs/academic/class/15668-s11/www/cuda-doc/ptx_isa_1.4.pdf">PTX: Parallel Thread Execution ISA Version 1.4</a> (PDF, 2.5 MB)</li>
@@ -1335,12 +1320,12 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <li><a href="https://www.intel.com/content/www/us/en/developer/articles/technical/openmp-simd-for-inclusiveexclusive-scans.html">OpenMP* SIMD for Inclusive/Exclusive Scans</a></li>
 <li><a href="https://blogs.fau.de/hager/files/2010/07/numet_hager_08.pdf">Effiziente Nutzung von Hochleistungsrechnern in der numerischen Strömungsmechanik | Dr. Georg Hager</a> (PDF, 599 KB)</li>
 <li><a href="https://dl.acm.org/doi/pdf/10.1145/29873.29875">Automatic Translation of FORTRAN Programs to Vector Form | Randy Allen and Ken Kennedy</a> (PDF, 2.8 MB)</li>
-<li>Bik, A. J., Tian, X., &amp; Girkar, M. B. (2006). Multimedia vectorization of floating‐point MIN/MAX reductions. Concurrency and Computation: Practice and Experience, 18(9), 997-1007. <a href="https://doi.org/10.1002/cpe.1009">https://doi.org/10.1002/cpe.1009</a></li>
+<li><a href="https://doi.org/10.1002/cpe.1009">Multimedia vectorization of floating-point MIN/MAX reductions (2006) | Bik et al.</a></li>
 <li><a href="https://doku.lrz.de/files/11497000/11497017/8/1745835328413/3_Vectorization.pdf">Vectorization Essentials | Intel Software</a> (PDF, 1913 KB)</li>
-<li>Karp, A. H., &amp; Babb, R. B. (1988). A comparison of 12 parallel Fortran dialects. Ieee Software, 5(5), 52-67. <a href="https://doi.org/10.1109/52.7943">https://doi.org/10.1109/52.7943</a></li>
-<li>Oraji, Y. M., Hück, A., &amp; Bischof, C. (2025, November). Extending MPI Correctness Benchmarking to the Fortran Language. In Proceedings of the SC'25 Workshops of the International Conference for High Performance Computing, Networking, Storage and Analysis (pp. 244-248). <a href="https://doi.org/10.1145/3731599.3767366">https://doi.org/10.1145/3731599.3767366</a></li>
-<li><a href="https://www.ixpug.org/images/docs/isc_2024/Investigating_the_perfomance_of_LLVM-based_IFX.pdf">Investigating the performance of LLVM- based Intel Fortran Complier (ifx) | Dhani Ruhela</a> (PDF, 596 KB)</li>
-<li>Rouson, D., Dibba, B., Rasmussen, K., Richardson, B., Torres, D., Zhang, Y., &hellip; &amp; Shende, S. (2024). Just Write Fortran: Experiences with a Language-Based Alternative to MPI+ X. <a href="https://doi.org/10.25344/S4H88D">https://doi.org/10.25344/S4H88D</a></li>
+<li><a href="https://doi.org/10.1109/52.7943">A comparison of 12 parallel Fortran dialects (1988) | Karp &amp; Babb</a></li>
+<li><a href="https://doi.org/10.1145/3731599.3767366">Extending MPI Correctness Benchmarking to the Fortran Language (2025) | Oraji et al.</a></li>
+<li><a href="https://www.ixpug.org/images/docs/isc_2024/Investigating_the_perfomance_of_LLVM-based_IFX.pdf">Investigating the performance of LLVM-based Intel Fortran Compiler (ifx) | Dhani Ruhela</a> (PDF, 596 KB)</li>
+<li><a href="https://doi.org/10.25344/S4H88D">Just Write Fortran: Experiences with a Language-Based Alternative to MPI+X (2024) | Rouson et al.</a></li>
 </ul>
 <h2 id="2025-11-19">2025-11-19</h2>
 <ul>

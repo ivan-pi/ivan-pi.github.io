@@ -970,40 +970,4 @@ katex: &#34;true&#34;</code></pre>
 <li><a href="https://jsfiddle.net/p9du5Lgq/5/?utm_source=website&amp;utm_medium=embed&amp;utm_campaign=p9du5Lgq">KaTeX \tag hack</a></li>
 <li><a href="https://github.com/KaTeX/KaTeX/issues/350">Equation numbering (KaTeX issue)</a></li>
 </ul>
-]]></content:encoded></item><item><title/><link>https://ivan-pi.github.io/posts/1/01/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/posts/1/01/</guid><description>&lt;h1 id="is-fortran-all-we-need-for-performance"&gt;Is Fortran all we need for performance?&lt;/h1&gt;
-&lt;p&gt;There are many myths out in the wild:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;you just need C++&lt;/li&gt;
-&lt;li&gt;you just need Fortran&lt;/li&gt;
-&lt;li&gt;you just need BLAS&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Telling the true from the false is&lt;/p&gt;
-&lt;p&gt;Design an API which encapsulates the operations you need.
-If performance is not good enough, seek to implement them by other means.&lt;/p&gt;
-&lt;p&gt;In practice we see that array reductions hardly reach the peak.&lt;/p&gt;
-&lt;p&gt;Even a memory copy won&amp;rsquo;t use nontemporal stores unless instructed too.&lt;/p&gt;</description><content:encoded><![CDATA[<h1 id="is-fortran-all-we-need-for-performance">Is Fortran all we need for performance?</h1>
-<p>There are many myths out in the wild:</p>
-<ul>
-<li>you just need C++</li>
-<li>you just need Fortran</li>
-<li>you just need BLAS</li>
-</ul>
-<p>Telling the true from the false is</p>
-<p>Design an API which encapsulates the operations you need.
-If performance is not good enough, seek to implement them by other means.</p>
-<p>In practice we see that array reductions hardly reach the peak.</p>
-<p>Even a memory copy won&rsquo;t use nontemporal stores unless instructed too.</p>
-]]></content:encoded></item><item><title/><link>https://ivan-pi.github.io/posts/1/01/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/posts/1/01/</guid><description>&lt;p&gt;SIMD Libraries&lt;/p&gt;
-&lt;p&gt;Generic SIMD
-&lt;a href="https://github.com/genericsimd/generic_simd/"&gt;https://github.com/genericsimd/generic_simd/&lt;/a&gt;
-&lt;a href="https://doi.org/10.1145/2568058.2568059"&gt;https://doi.org/10.1145/2568058.2568059&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;Google Highway
-&lt;a href="https://google.github.io/highway/en/master/"&gt;https://google.github.io/highway/en/master/&lt;/a&gt;
-&lt;a href="https://github.com/google/highway"&gt;https://github.com/google/highway&lt;/a&gt;&lt;/p&gt;</description><content:encoded><![CDATA[<p>SIMD Libraries</p>
-<p>Generic SIMD
-<a href="https://github.com/genericsimd/generic_simd/">https://github.com/genericsimd/generic_simd/</a>
-<a href="https://doi.org/10.1145/2568058.2568059">https://doi.org/10.1145/2568058.2568059</a></p>
-<p>Google Highway
-<a href="https://google.github.io/highway/en/master/">https://google.github.io/highway/en/master/</a>
-<a href="https://github.com/google/highway">https://github.com/google/highway</a></p>
 ]]></content:encoded></item></channel></rss>
