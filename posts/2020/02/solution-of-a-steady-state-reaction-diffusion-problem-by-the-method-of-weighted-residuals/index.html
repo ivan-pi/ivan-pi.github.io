@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Solution of a steady-state reaction-diffusion problem by the method of weighted residuals&nbsp;|&nbsp;Ivan Pribec</title>
+<meta
+  name="title"
+  content="Solution of a steady-state reaction-diffusion problem by the method of weighted residuals"
+/>
+<meta
+  name="description"
+  content="The method of weighted residuals
+The method of weighted residuals (MWR) is used to find approximate solutions to differential equations by expanding the unknown solution into a known set of basis functions and determining a set of parameters which minimize the residual with respect to a given weight function. Several variants of the method exist, such as the collocation method, Galerkin method, least squares method and the subdomain method.
+The method of weighted residuals was widely used among chemical engineers back in the days before computers were widespread. Approximations using only few terms in the expansion, which could be dealt with by hand (or with a trusty slide rule), proved sufficient for most calculation purposes. Today, the MWR has been mostly replaced by computerized solutions based on finite differences, finite volumes, or finite elements. The latter can be considered as a MWR using local basis functions that take on a non-zero value only over a small region. Spectral methods which are still in widespread use in physics and computational chemistry can also be seens as an advanced version of MWR."
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+
+  <meta name="author" content="Ivan Pribec" />
+
+
+
+
+<meta property="og:url" content="http://localhost:1313/posts/2020/02/solution-of-a-steady-state-reaction-diffusion-problem-by-the-method-of-weighted-residuals/">
+  <meta property="og:site_name" content="Ivan Pribec">
+  <meta property="og:title" content="Solution of a steady-state reaction-diffusion problem by the method of weighted residuals">
+  <meta property="og:description" content="The method of weighted residuals The method of weighted residuals (MWR) is used to find approximate solutions to differential equations by expanding the unknown solution into a known set of basis functions and determining a set of parameters which minimize the residual with respect to a given weight function. Several variants of the method exist, such as the collocation method, Galerkin method, least squares method and the subdomain method.
+The method of weighted residuals was widely used among chemical engineers back in the days before computers were widespread. Approximations using only few terms in the expansion, which could be dealt with by hand (or with a trusty slide rule), proved sufficient for most calculation purposes. Today, the MWR has been mostly replaced by computerized solutions based on finite differences, finite volumes, or finite elements. The latter can be considered as a MWR using local basis functions that take on a non-zero value only over a small region. Spectral methods which are still in widespread use in physics and computational chemistry can also be seens as an advanced version of MWR.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2020-02-15T20:47:20+01:00">
+    <meta property="article:modified_time" content="2020-02-15T20:47:20+01:00">
+
+
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Solution of a steady-state reaction-diffusion problem by the method of weighted residuals">
+  <meta name="twitter:description" content="The method of weighted residuals The method of weighted residuals (MWR) is used to find approximate solutions to differential equations by expanding the unknown solution into a known set of basis functions and determining a set of parameters which minimize the residual with respect to a given weight function. Several variants of the method exist, such as the collocation method, Galerkin method, least squares method and the subdomain method.
+The method of weighted residuals was widely used among chemical engineers back in the days before computers were widespread. Approximations using only few terms in the expansion, which could be dealt with by hand (or with a trusty slide rule), proved sufficient for most calculation purposes. Today, the MWR has been mostly replaced by computerized solutions based on finite differences, finite volumes, or finite elements. The latter can be considered as a MWR using local basis functions that take on a non-zero value only over a small region. Spectral methods which are still in widespread use in physics and computational chemistry can also be seens as an advanced version of MWR.">
+
+
+
+
+
+  <meta itemprop="name" content="Solution of a steady-state reaction-diffusion problem by the method of weighted residuals">
+  <meta itemprop="description" content="The method of weighted residuals The method of weighted residuals (MWR) is used to find approximate solutions to differential equations by expanding the unknown solution into a known set of basis functions and determining a set of parameters which minimize the residual with respect to a given weight function. Several variants of the method exist, such as the collocation method, Galerkin method, least squares method and the subdomain method.
+The method of weighted residuals was widely used among chemical engineers back in the days before computers were widespread. Approximations using only few terms in the expansion, which could be dealt with by hand (or with a trusty slide rule), proved sufficient for most calculation purposes. Today, the MWR has been mostly replaced by computerized solutions based on finite differences, finite volumes, or finite elements. The latter can be considered as a MWR using local basis functions that take on a non-zero value only over a small region. Spectral methods which are still in widespread use in physics and computational chemistry can also be seens as an advanced version of MWR.">
+  <meta itemprop="datePublished" content="2020-02-15T20:47:20+01:00">
+  <meta itemprop="dateModified" content="2020-02-15T20:47:20+01:00">
+  <meta itemprop="wordCount" content="1281">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+    
+    
+    
+    <link href="/bundle.min.css" rel="stylesheet" />
+
+    
+
+    
+
+
+    
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    crossorigin="anonymous" />
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    crossorigin="anonymous"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '$', right: '$', display: false }
+      ],
+      throwOnError: false
+    });"></script>
+  <link rel="stylesheet" href="/css/address.css" />
+</head>
+
+  <body>
+    <header>
+      <nav>
+  <a
+    href="/"
+    
+    >home</a
+  >
+
+  <a
+    href="/posts/"
+    
+    >blog</a
+  >
+
+  <a
+    href="/code/"
+    
+    >code</a
+  >
+
+  <a
+    href="/links/"
+    
+    >links</a
+  >
+
+  <a
+    href="/now/"
+    
+    >now</a
+  >
+
+
+</nav>
+    <h1>Solution of a steady-state reaction-diffusion problem by the method of weighted residuals</h1>
+
+
+    </header>
+    <main>
+      
+  
+  
+    
+      <p>
+        <i>
+          <time
+            style="color: var(--text-light);"
+            datetime="2020-02-15"
+            pubdate
+          >
+            2020-02-15
+          </time>
+        </i>
+      </p>
+    
+  
+  
+  <content>
+    <h2 id="the-method-of-weighted-residuals">The method of weighted residuals</h2>
+<p>The method of weighted residuals (MWR) is used to find approximate solutions to differential equations by expanding the unknown solution into a known set of basis functions and determining a set of parameters which minimize the residual with respect to a given weight function. Several variants of the method exist, such as the collocation method, Galerkin method, least squares method and the subdomain method.</p>
+<p>The method of weighted residuals was widely used among chemical engineers back in the days before computers were widespread. Approximations using only few terms in the expansion, which could be dealt with by hand (or with a trusty slide rule), proved sufficient for most calculation purposes. Today, the MWR has been mostly replaced by computerized solutions based on finite differences, finite volumes, or finite elements. The latter can be considered as a MWR using local basis functions that take on a non-zero value only over a small region. Spectral methods which are still in widespread use in physics and computational chemistry can also be seens as an advanced version of MWR.</p>
+<h2 id="steady-state-reaction-diffusion-equation">Steady-state reaction-diffusion equation</h2>
+<p>For demonstration purposes we will try and approximate the solution of the steady-state reaction-diffusion equation (RDE),</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$D \frac{\partial^2 c}{\partial x^2} - k c = 0,$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(1)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>where $$c$$ is the concentration of a given species, $$D$$ is the diffusivity, and $$k$$ is the reaction rate constant assuming a first-order reaction. This type of equation appears in the classic treatment of reaction-diffusion in a porous catalyst pellet.</p>
+<p>Assume we are interested in calculating the concentration profile inside a porous catalyst slab of thickness $$2L$$. The boundary conditions (BC) for this problem are given by</p>
+<p><table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\frac{\partial c}{\partial x} = 0 \quad \mathrm{at}\; x = 0$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(2a)</td>
+    </tr>
+  </tbody>
+</table>
+
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$c = c_0 \quad \mathrm{at}\;x = L$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(2b)</td>
+    </tr>
+  </tbody>
+</table>
+</p>
+<p>where the origin of the coordinate system has been placed in the middle of the slab. Given that $$D$$ and $$k$$ are constants we expect the solution to be an even function, $$c(x) = c(-x)$$.</p>
+<p>The equations above can be manipulated into dimensionless form, using the thickness $$L$$ and boundary concentration $$c_0$$ to define the following dimensionless variables:</p>
+<p>$$ \theta = \frac{x}{L}, \quad u = \frac{c}{c_0}$$</p>
+<p>Upon insertion of the new variables into (1) the RDE is transformed into</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\frac{\partial^2 u}{\partial^2 \theta} - \tau^2 u = 0$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(3)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>where $$\tau = L \sqrt{k/D}$$ is known as the <em>Thiele</em> modulus and represents the ratio of reaction rate and diffusion rate. The boundary conditions are also transformed into</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\frac{\partial u}{\partial \theta} = 0 \quad \mathrm{at}\; \theta = 0$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(4a)</td>
+    </tr>
+  </tbody>
+</table>
+
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$u = 1 \quad \mathrm{at}\;\theta = 1$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(4b)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="solution-by-mwr">Solution by MWR</h2>
+<p>We are now ready to find a solution of the (3) and the associated BCs (4) by expanding the unknown solution onto a set of basis functions. For simplicity we will work with the monomials $${\theta^k, k = 0,1,2,&hellip;}$$. Limiting ourselves to a second-order expansion, the trial solution $$\tilde{u}$$ takes the form</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\tilde{u}(b_k,\theta) = \sum_{k = 0}^2 b_k \theta^k = b_0 &#43; b_1 \theta &#43; b_2 \theta^2,$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(5)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>where $$b_k$$ are a set of unknown coefficients we would like to determine. Two of these can be eliminated by applying the BCs to $$\tilde{u}$$:</p>
+<p>$$ \frac{\partial \tilde{u}}{\partial \theta} = b_1 + 2 b_2 \theta = 0 ;\rightarrow; b_1 + 2b_2 \cdot 0 = 0 ;\rightarrow; b_1 = 0$$</p>
+<p>$$b_0 + b_1 + b_2 = 1$$</p>
+<p>Using this knowledge the trial solution may be simplified as</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\tilde{u}(b_2,\theta) = (1 - b_2) &#43; b_2 \theta^2 = 1 &#43; b_2 \left(\theta^2 - 1\right)$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(6)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>leaving only one unknown coefficient in the trial solution. This is also known as an <em>interior</em> weighted residual method, as the boundary conditions have been integrated into the trial solution beforehand, and only the coefficients controlling the behavior in the interior are to be determined. To determine the value of $$b_2$$ we will seek to minimize the residual of the approximation,</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$R(b_2,\theta) = \frac{\partial^2 \tilde{u}}{\partial^2 \theta} - \tau^2 \tilde{u} = 2b_2 - \tau^2\left(1 &#43; b_2 \left(\theta^2 - 1\right)\right)$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(7)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>across the entire domain, multiplied by a chosen weight function $$w(\theta)$$:</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\int_0^1 w(\theta) R(b_2, \theta) d\theta= 0.$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(8)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>This gives us an equation for the missing coefficient $$b_2$$, completing our trial solution $$\tilde{u}$$. The trial solution satisfies the original differential equation (3) only in the <em>weak</em> sense, meaning only the weighted average of the residual equals zero as specified by (8). Notice if $$\tilde{u}(\theta) = u(\theta)$$ was the exact solution, the residual would be zero everywhere, and the integral in (8) would be satisfied automatically.</p>
+<p>The variants of MWR mentioned at the beginning correspond to different choices of the weight function $$w(\theta)$$, some leading to better approximate solutions than others. We will now investigate the most common choices.</p>
+<h2 id="subdomain-method">Subdomain method</h2>
+<p>In the subdomain method we force the residual to zero on a certain subregion $$\Gamma_j$$,</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$w_k(\theta) = \begin{cases} 1, &amp; \theta \in \Gamma_k \\ 0, &amp; \mathrm{otherwise} \end{cases}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(9)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The number of subregions should equal the number of unknown parameters. Since we have only one unknown in our reaction-diffusion problem we simply choose the entire interval of interest, $$\Gamma_2 = (0,1)$$. Equation (8) then becomes:</p>
+<p><table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\int_0^1 \left(2b_2 - \tau^2 &#43; \tau^2 b_2 \theta^2 &#43;b_2\tau^2\right)d\theta = 0.$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(10)</td>
+    </tr>
+  </tbody>
+</table>
+
+Upon finding the antiderivative of the expression in brackets, and using the fundamental theorem of calculus,<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> we get the following expression</p>
+<p>$$2b_2 - \tau^2 + \frac{\tau^2b_2}{3} + b_2 \tau^2 = 0$$</p>
+<p>which can be solved for $$b_2$$, yielding.</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$b_2 = \frac{3\tau^2}{6 &#43; 4\tau^2}.$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(11)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>For $$\tau = 1$$, the final solution is given by</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\tilde{u}(\theta) = 1 &#43; \frac{3}{10}\left( \theta^2 - 1\right).$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(12)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="collocation-method">Collocation method</h2>
+<p>In the collocation method the residual is forced to zero at a fixed number of <em>collocation points</em> $$\theta_k$$. This corresponds to the choice of weight function</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$w(\theta) = \delta(\theta - \theta_k)$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(13)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>where $$\delta(x)$$ is the <a href="https://en.wikipedia.org/wiki/Dirac_delta_function">Dirac delta function</a>. Due to the <em>sampling property</em>, $$\int f(x)\delta(x-X) dx = f(X)$$, the collocation method simplifies integral expressions into simple evaluations at the collocation points. For the reaction-diffusion case we choose arbitrarily the single point $$\theta_2 = 1/2$$ leading to the expression</p>
+<p>$$2b_2 - \tau^2\left(1 + b_2 \left(\left(\frac{1}{2}\right)^2 - 1\right)\right) = 0$$</p>
+<p>which upon solving for $$b_2$$, yields</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$b_2 = \frac{4\tau^2}{8 &#43; 3\tau^2}.$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(14)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>For $$\tau = 1$$, the final solution given by the collocation method is</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\tilde{u}(\theta) = 1 &#43; \frac{4}{11}\left( \theta^2 - 1\right).$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(15)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="galerkin-method">Galerkin method</h2>
+<p>In the Galerkin method the weights are the basis functions of the expansion itself, or more generally - the derivatives of the trial function with respect to the expansion coefficients,</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$w_k(\theta) = \frac{\partial \tilde{u}}{\partial b_k}.$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(16)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>For the RD at hand we find the following weight function:</p>
+<p>$$
+w_2(\theta) = \frac{\partial \tilde{u}}{\partial b_2}= \theta^2 - 1,
+$$</p>
+<p>which upon insertion into (8) becomes</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\int_0^1 \left(\theta^2 - 1\right)\left(2b_2 - \tau^2\left(1 &#43; b_2 \left(\theta^2 - 1\right)\right)\right)d\theta = 0$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(17)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To avoid tedious algebra we can use SymPy to simplify the integral expression and solve the resulting equation for $$b_2$$,</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#179299">import</span> <span style="color:#fe640b">sympy</span> <span style="color:#8839ef">as</span> <span style="color:#fe640b">sp</span>
+</span></span><span style="display:flex;"><span>t, b2, tau <span style="color:#04a5e5;font-weight:bold">=</span> sp<span style="color:#04a5e5;font-weight:bold">.</span>symbols(<span style="color:#40a02b">&#39;theta b_2 tau&#39;</span>)
+</span></span><span style="display:flex;"><span>w <span style="color:#04a5e5;font-weight:bold">=</span> (t<span style="color:#04a5e5;font-weight:bold">**</span><span style="color:#fe640b">2</span> <span style="color:#04a5e5;font-weight:bold">-</span> <span style="color:#fe640b">1</span>)
+</span></span><span style="display:flex;"><span>R <span style="color:#04a5e5;font-weight:bold">=</span> (<span style="color:#fe640b">2</span><span style="color:#04a5e5;font-weight:bold">*</span>b2 <span style="color:#04a5e5;font-weight:bold">-</span> tau<span style="color:#04a5e5;font-weight:bold">**</span><span style="color:#fe640b">2</span><span style="color:#04a5e5;font-weight:bold">*</span>(<span style="color:#fe640b">1</span> <span style="color:#04a5e5;font-weight:bold">+</span> b2<span style="color:#04a5e5;font-weight:bold">*</span>(t<span style="color:#04a5e5;font-weight:bold">**</span><span style="color:#fe640b">2</span> <span style="color:#04a5e5;font-weight:bold">-</span> <span style="color:#fe640b">1</span>)))
+</span></span><span style="display:flex;"><span>eq <span style="color:#04a5e5;font-weight:bold">=</span> sp<span style="color:#04a5e5;font-weight:bold">.</span>integrate(integrand,(t,<span style="color:#fe640b">0</span>,<span style="color:#fe640b">1</span>))
+</span></span><span style="display:flex;"><span>b2_sol <span style="color:#04a5e5;font-weight:bold">=</span> sp<span style="color:#04a5e5;font-weight:bold">.</span>solve(eq,b2)
+</span></span><span style="display:flex;"><span>sp<span style="color:#04a5e5;font-weight:bold">.</span>latex(b2_sol)</span></span></code></pre></div>
+<p>The output of the code is</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$b_2 = \frac{5 \tau^{2}}{2 \left(2 \tau^{2} &#43; 5\right)}.$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(18)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>For $$\tau = 1$$, the final solution given by the Galerkin method is</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\tilde{u}(\theta) = 1 &#43; \frac{5}{14}\left( \theta^2 - 1\right).$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(19)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="least-squares-method">Least-squares method</h2>
+<p>Last, but not least, we introduce the least-squares method.</p>
+<p>$$
+w(\theta) = \frac{\partial R(b_2,\tilde{u})}{\partial b_2} = 2 - \tau^2\left(\theta^2 - 1\right)
+$$</p>
+<p>$$
+\int_0^1 \left(2 - \tau^2\left(\theta^2 - 1\right)\right)\left(2b_2 - \tau^2\left(1 + b_2 \left(\theta^2 - 1\right)\right)\right)d\theta = 0
+$$</p>
+<p>$$
+b_2 = \frac{5 \tau^{2} \left(\tau^{2} + 3\right)}{2 \left(2 \tau^{4} + 10 \tau^{2} + 15\right)}
+$$</p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$E=mc^2$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(0)</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>$$\int_a^b f(x) dx = F(b) - F(a)$$&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+
+  </content>
+  
+    
+    
+    
+    
+      <div class="flex-between" style="margin-top: 3rem;">
+        
+          <a href="/posts/2020/02/setting-up-a-personal-website-using-hugo/" rel="prev" aria-label="Previous post: Setting up a personal website using Hugo">
+            <span>←</span>
+            <span>Setting up a personal website using Hugo</span>
+          </a>
+        
+        
+          <a href="/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/" rel="next" aria-label="Next post: Evaluating the closed form coefficients of Laguerre polynomials">
+            <span>Evaluating the closed form coefficients of Laguerre polynomials</span>
+            <span>→</span>
+          </a>
+        
+      </div>
+    
+  
+
+    </main>
+    <footer>
+      
+
+      
+  <span>© 2025 — Ivan Pribec — All rights reserved.</span>
+
+
+
+    </footer>
+
+    
+</body>
+</html>

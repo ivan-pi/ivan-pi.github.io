@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What Does MAXLOC Return for an Empty Array?&nbsp;|&nbsp;Ivan Pribec</title>
+<meta
+  name="title"
+  content="What Does MAXLOC Return for an Empty Array?"
+/>
+<meta
+  name="description"
+  content="While iterating on an LU factorization routine in Fortran the other day, I stumbled into a failing test:
+
+
+
+
+
+
+ 5/12 Test  #5: find_pivot .......................***Failed    0.06 sec
+testing find_pivot_maxloc
+4
+The 4 on the second line is the code from an error stop, and it came from this innocent-looking case:
+
+
+
+
+
+
+! Empty array
+x = [real(dp) ::]
+res = find_pivot(x, size(x))
+if (res /= 0) error stop 4
+An empty array is a natural edge case for a pivot search, so the test simply asserts that searching an empty array returns 0, our sentinel for &ldquo;no pivot found.&rdquo; The kernel under test was a one-liner built around the maxloc intrinsic:"
+/>
+<meta
+  name="keywords"
+  content="Fortran,maxloc,minloc,Intel,"
+/>
+
+  <meta name="author" content="Ivan Pribec" />
+
+
+
+
+<meta property="og:url" content="http://localhost:1313/posts/2026/07/what-does-maxloc-return-for-an-empty-array/">
+  <meta property="og:site_name" content="Ivan Pribec">
+  <meta property="og:title" content="What Does MAXLOC Return for an Empty Array?">
+  <meta property="og:description" content="While iterating on an LU factorization routine in Fortran the other day, I stumbled into a failing test:
+5/12 Test #5: find_pivot .......................***Failed 0.06 sec testing find_pivot_maxloc 4 The 4 on the second line is the code from an error stop, and it came from this innocent-looking case:
+! Empty array x = [real(dp) ::] res = find_pivot(x, size(x)) if (res /= 0) error stop 4 An empty array is a natural edge case for a pivot search, so the test simply asserts that searching an empty array returns 0, our sentinel for “no pivot found.” The kernel under test was a one-liner built around the maxloc intrinsic:">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-07-18T00:00:00+02:00">
+    <meta property="article:modified_time" content="2026-07-18T00:00:00+02:00">
+    <meta property="article:tag" content="Fortran">
+    <meta property="article:tag" content="Maxloc">
+    <meta property="article:tag" content="Minloc">
+    <meta property="article:tag" content="Intel">
+
+
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="What Does MAXLOC Return for an Empty Array?">
+  <meta name="twitter:description" content="While iterating on an LU factorization routine in Fortran the other day, I stumbled into a failing test:
+5/12 Test #5: find_pivot .......................***Failed 0.06 sec testing find_pivot_maxloc 4 The 4 on the second line is the code from an error stop, and it came from this innocent-looking case:
+! Empty array x = [real(dp) ::] res = find_pivot(x, size(x)) if (res /= 0) error stop 4 An empty array is a natural edge case for a pivot search, so the test simply asserts that searching an empty array returns 0, our sentinel for “no pivot found.” The kernel under test was a one-liner built around the maxloc intrinsic:">
+
+
+
+
+
+  <meta itemprop="name" content="What Does MAXLOC Return for an Empty Array?">
+  <meta itemprop="description" content="While iterating on an LU factorization routine in Fortran the other day, I stumbled into a failing test:
+5/12 Test #5: find_pivot .......................***Failed 0.06 sec testing find_pivot_maxloc 4 The 4 on the second line is the code from an error stop, and it came from this innocent-looking case:
+! Empty array x = [real(dp) ::] res = find_pivot(x, size(x)) if (res /= 0) error stop 4 An empty array is a natural edge case for a pivot search, so the test simply asserts that searching an empty array returns 0, our sentinel for “no pivot found.” The kernel under test was a one-liner built around the maxloc intrinsic:">
+  <meta itemprop="datePublished" content="2026-07-18T00:00:00+02:00">
+  <meta itemprop="dateModified" content="2026-07-18T00:00:00+02:00">
+  <meta itemprop="wordCount" content="964">
+  <meta itemprop="keywords" content="Fortran,Maxloc,Minloc,Intel">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+    
+    
+    
+    <link href="/bundle.min.css" rel="stylesheet" />
+
+    
+
+    
+
+
+    
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    crossorigin="anonymous" />
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    crossorigin="anonymous"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '$', right: '$', display: false }
+      ],
+      throwOnError: false
+    });"></script>
+  <link rel="stylesheet" href="/css/address.css" />
+</head>
+
+  <body>
+    <header>
+      <nav>
+  <a
+    href="/"
+    
+    >home</a
+  >
+
+  <a
+    href="/posts/"
+    
+    >blog</a
+  >
+
+  <a
+    href="/code/"
+    
+    >code</a
+  >
+
+  <a
+    href="/links/"
+    
+    >links</a
+  >
+
+  <a
+    href="/now/"
+    
+    >now</a
+  >
+
+
+</nav>
+    <h1>What Does MAXLOC Return for an Empty Array?</h1>
+
+
+    </header>
+    <main>
+      
+  
+  
+    
+      <p>
+        <i>
+          <time
+            style="color: var(--text-light);"
+            datetime="2026-07-18"
+            pubdate
+          >
+            2026-07-18
+          </time>
+        </i>
+      </p>
+    
+  
+  
+  <content>
+    <p>While iterating on an LU factorization routine in Fortran the other day, I stumbled into a failing test:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code> 5/12 Test  #5: find_pivot .......................***Failed    0.06 sec
+testing find_pivot_maxloc
+4</code></pre>
+<p>The <code>4</code> on the second line is the code from an <code>error stop</code>, and it came from this innocent-looking case:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">! Empty array
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>x <span style="color:#04a5e5;font-weight:bold">=</span> [<span style="color:#8839ef">real</span>(dp) <span style="color:#d20f39">::</span>]
+</span></span><span style="display:flex;"><span>res <span style="color:#04a5e5;font-weight:bold">=</span> find_pivot(x, size(x))
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">if</span> (res <span style="color:#04a5e5;font-weight:bold">/=</span> <span style="color:#fe640b">0</span>) <span style="color:#8839ef">error stop</span> <span style="color:#fe640b">4</span></span></span></code></pre></div>
+<p>An empty array is a natural edge case for a pivot search, so the test simply asserts that searching an empty array returns <code>0</code>, our sentinel for &ldquo;no pivot found.&rdquo; The kernel under test was a one-liner built around the <code>maxloc</code> intrinsic:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">pure</span> <span style="color:#8839ef">integer</span> <span style="color:#8839ef">function</span> find_pivot_maxloc(a, n) <span style="color:#8839ef">result</span>(ip)
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">integer</span>,  <span style="color:#8839ef">intent</span>(in) <span style="color:#d20f39">::</span> n
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">real</span>(dp), <span style="color:#8839ef">intent</span>(in) <span style="color:#d20f39">::</span> a(n)
+</span></span><span style="display:flex;"><span>    ip <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">maxloc</span>(<span style="color:#04a5e5">abs</span>(a), <span style="color:#04a5e5">dim</span><span style="color:#04a5e5;font-weight:bold">=</span><span style="color:#fe640b">1</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span> <span style="color:#8839ef">function</span></span></span></code></pre></div>
+<p>Finding the index of the entry with the largest magnitude is exactly the partial-pivoting step in Gaussian elimination. It is such a common operation that the reference BLAS ships a dedicated routine for it, <a href="https://github.com/Reference-LAPACK/lapack/blob/master/BLAS/SRC/idamax.f"><code>IDAMAX</code></a>, used throughout LAPACK&rsquo;s factorization routines. Hold that thought&mdash;we&rsquo;ll come back to <code>IDAMAX</code> shortly.</p>
+<h2 id="reproducing-the-surprise">Reproducing the surprise</h2>
+<p>One prompt later I had a minimal reproducer, which you can run for yourself in <a href="https://godbolt.org/z/aWf119h3a">Compiler Explorer</a>. Compiled with the Intel Fortran compiler (<code>ifx</code>) using its default settings, <code>maxloc(abs(a), dim=1)</code> on a zero-sized array returns <code>1</code> rather than <code>0</code>. That single off-by-one sentinel is enough to trip the assertion and abort the test.</p>
+<p>At first glance this looks like a plain compiler bug. It isn&rsquo;t&mdash;it&rsquo;s a deliberate, decades-old default.</p>
+<h2 id="why-does-this-happen">Why does this happen?</h2>
+<p>A quick web search turned up a relevant <a href="https://community.intel.com/t5/Intel-Fortran-Compiler/Incorrect-minloc-maxloc-results-with-ifx-2024-0/td-p/1549287">Intel Fortran forum thread</a>. As Steve Lionel explains there:</p>
+<blockquote>
+<p>The issue is that earlier standards didn&rsquo;t specify what happens with zero-sized arrays, and adding checks for that slows code down. Intel has traditionally been reluctant to make changes that reduce performance, though it has happened (one no longer needs /assume:realloc_lhs, for example). Changing the default here would slow down everyone&rsquo;s MAXLOC/MINLOC, so there will be some resistance.</p>
+</blockquote>
+<p>Here is the history in a nutshell. Fortran 95 and earlier let <code>MAXLOC</code>/<code>MINLOC</code> return <code>1</code> for a zero-sized array (or when every element of a <code>MASK</code> is false), and that was the compiler&rsquo;s behavior. Fortran 2003 tightened this: if the array has size zero, every element of the result shall be zero. Intel added the standard-conforming behavior behind the <a href="https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2025-0/maxloc.html"><code>-assume [no]old_maxminloc</code></a> switch, but kept the <em>old</em> behavior&mdash;returning <code>1</code>&mdash;as the default, because the extra check for the empty case costs a little performance in the hot path.</p>
+<p>So <code>ifx</code> isn&rsquo;t so much wrong as old-fashioned by default. The <code>4</code> in my test output was the compiler faithfully reproducing 1990s semantics.</p>
+<h2 id="fixing-it">Fixing it</h2>
+<p>There are a few ways out, depending on how much you value portability versus a clean hot path.</p>
+<p><strong>Flip the switch.</strong> The most direct fix is to ask the compiler for the modern semantics:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>-assume noold_maxminloc</code></pre>
+<p>The fix suggested in the forum thread is the broader <code>-standard-semantics</code> flag, which turns on <code>noold_maxminloc</code> along with a whole batch of other standard-conforming behaviors. That makes it something of a &ldquo;big hammer&rdquo;: it changes semantics in many areas at once, so it can have knock-on effects&mdash;including on performance&mdash;in places you might have preferred to leave alone. Note also that the diagnostic flag <code>-stand f18</code> does <em>not</em> change semantics; it only controls warnings.</p>
+<p><strong>Guard it yourself.</strong> If you&rsquo;d rather not depend on a build flag, add your own empty check:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">pure</span> <span style="color:#8839ef">integer</span> <span style="color:#8839ef">function</span> find_pivot_maxloc(a, n) <span style="color:#8839ef">result</span>(ip)
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">integer</span>,  <span style="color:#8839ef">intent</span>(in) <span style="color:#d20f39">::</span> n
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">real</span>(dp), <span style="color:#8839ef">intent</span>(in) <span style="color:#d20f39">::</span> a(n)
+</span></span><span style="display:flex;"><span>    ip <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">if</span> (n <span style="color:#04a5e5;font-weight:bold">&lt;</span> <span style="color:#fe640b">1</span>) <span style="color:#8839ef">return</span>
+</span></span><span style="display:flex;"><span>    ip <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">maxloc</span>(<span style="color:#04a5e5">abs</span>(a), <span style="color:#04a5e5">dim</span><span style="color:#04a5e5;font-weight:bold">=</span><span style="color:#fe640b">1</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span> <span style="color:#8839ef">function</span></span></span></code></pre></div>
+<p>The downside is that on a standard-conforming compiler you now pay for the check twice: once in your guard, and once again inside <code>maxloc</code>.</p>
+<p>If that redundancy bothers you, you can hide the guard behind the preprocessor:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#ifdef BAD_COMPILER
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>    <span style="color:#8839ef">if</span> (n <span style="color:#04a5e5;font-weight:bold">&lt;</span> <span style="color:#fe640b">1</span>) <span style="color:#8839ef">return</span>
+</span></span><span style="display:flex;"><span><span style="color:#d20f39">#</span><span style="color:#8839ef">endif</span></span></span></code></pre></div>
+<p>This avoids the double check&mdash;until the day someone builds with <code>-standard-semantics</code>, at which point <code>maxloc</code> guards the empty case too and we are back to checking twice. Papering over that would mean tying the macro to the exact compiler flags in play. Ugh.</p>
+<p>Which brings us back to <code>IDAMAX</code>. If you peek at the reference BLAS implementation, the very first thing it does is exactly the guard we just reinvented:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">INTEGER</span> <span style="color:#8839ef">FUNCTION</span> IDAMAX(N,DX,INCX)
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    IDAMAX <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">IF</span> (N.LT.<span style="color:#fe640b">1</span> .<span style="color:#04a5e5">OR</span>. INCX.LE.<span style="color:#fe640b">0</span>) <span style="color:#8839ef">RETURN</span>
+</span></span><span style="display:flex;"><span>    IDAMAX <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>
+</span></span><span style="display:flex;"><span>    ...</span></span></code></pre></div>
+<p>A routine that has been in service since the late 1970s already returns <code>0</code> for an empty input. The explicit check has been there all along; the modern intrinsic just tucked it behind a compiler switch.</p>
+<h2 id="is-the-test-even-worth-it">Is the test even worth it?</h2>
+<p>In practice, within the library we never actually call <code>maxloc</code> on an empty array&mdash;the pivot search always runs over a non-empty panel. By that logic the test is arguably pointless, and I could delete it and move on.</p>
+<p>But &ldquo;we never do that&rdquo; has a way of expiring. The day someone copies this kernel into another project&mdash;where the empty case <em>can</em> occur&mdash;the old-array behavior is waiting to bite. A cheap test that pins down the contract for the edge case is good insurance, even if today&rsquo;s callers never exercise it.</p>
+<h2 id="a-recommendation-for-new-projects">A recommendation for new projects</h2>
+<p>For new work I have settled on flipping the switch at the build level and letting the intrinsic behave the way the standard says. In CMake, you can scope the flag to just the Intel compilers:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"># Make ifx/ifort return 0 from MAXLOC/MINLOC on zero-sized arrays,
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"># matching the Fortran 2003+ standard.
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span><span style="color:#04a5e5">add_compile_options</span>(
+</span></span><span style="display:flex;"><span>  <span style="color:#40a02b">&#34;$&lt;$&lt;COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM&gt;:-assume;noold_maxminloc&gt;&#34;</span>)</span></span></code></pre></div>
+<p>If you would rather opt into the full set of modern semantics, swap <code>-assume;noold_maxminloc</code> for <code>-standard-semantics</code>&mdash;just be aware that it changes more than this one corner.</p>
+<p>Either way, the lesson is an old one: intrinsics have contracts, those contracts have edges, and the edges are where the interesting bugs live.</p>
+
+  </content>
+  
+    
+    
+      <p>
+        
+          <a href="/tags/fortran/">#Fortran</a>&nbsp;&nbsp;
+        
+          <a href="/tags/maxloc/">#Maxloc</a>&nbsp;&nbsp;
+        
+          <a href="/tags/minloc/">#Minloc</a>&nbsp;&nbsp;
+        
+          <a href="/tags/intel/">#Intel</a>&nbsp;&nbsp;
+        
+      </p>
+    
+    
+    
+      <div class="flex-between" style="margin-top: 3rem;">
+        
+          <a href="/posts/2025/11/zero-sized-arrays-and-the-maxloc/minloc-conformity-issue/" rel="prev" aria-label="Previous post: Zero-sized arrays and the maxloc/minloc conformity issue">
+            <span>←</span>
+            <span>Zero-sized arrays and the maxloc/minloc conformity issue</span>
+          </a>
+        
+        
+          <a href="/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/" rel="next" aria-label="Next post: Sizing RBF-FD Stencils for Modern CPU Caches">
+            <span>Sizing RBF-FD Stencils for Modern CPU Caches</span>
+            <span>→</span>
+          </a>
+        
+      </div>
+    
+  
+
+    </main>
+    <footer>
+      
+
+      
+  <span>© 2025 — Ivan Pribec — All rights reserved.</span>
+
+
+
+    </footer>
+
+    
+</body>
+</html>

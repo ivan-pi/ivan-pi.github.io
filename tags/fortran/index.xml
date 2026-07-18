@@ -1,4 +1,142 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Ivan Pribec</title><link>https://ivan-pi.github.io/tags/fortran/</link><description>Recent content on Ivan Pribec</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright><lastBuildDate>Sat, 22 Nov 2025 00:00:00 +0100</lastBuildDate><atom:link href="https://ivan-pi.github.io/tags/fortran/index.xml" rel="self" type="application/rss+xml"/><item><title>Is the Humble For-Loop a Good Way to Search an Array?</title><link>https://ivan-pi.github.io/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</link><pubDate>Sat, 22 Nov 2025 00:00:00 +0100</pubDate><guid>https://ivan-pi.github.io/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</guid><description>&lt;p&gt;While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Ivan Pribec</title><link>https://ivan-pi.github.io/tags/fortran/</link><description>Recent content on Ivan Pribec</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright><lastBuildDate>Sat, 18 Jul 2026 00:00:00 +0200</lastBuildDate><atom:link href="https://ivan-pi.github.io/tags/fortran/index.xml" rel="self" type="application/rss+xml"/><item><title>Pascal's Triangle at Compile Time in Fortran</title><link>https://ivan-pi.github.io/posts/2026/07/pascals-triangle-at-compile-time-in-fortran/</link><pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate><guid>https://ivan-pi.github.io/posts/2026/07/pascals-triangle-at-compile-time-in-fortran/</guid><description>&lt;p&gt;&lt;a href="https://en.wikipedia.org/wiki/Pascal%27s_triangle"&gt;Pascal&amp;rsquo;s triangle&lt;/a&gt; — also
+known as &lt;strong&gt;Khayyam&amp;rsquo;s triangle&lt;/strong&gt; after the Persian mathematician and poet Omar
+Khayyam — arranges the &lt;a href="https://en.wikipedia.org/wiki/Binomial_coefficient"&gt;binomial
+coefficients&lt;/a&gt;&lt;/p&gt;
+&lt;table style="width: 100%; border: none; margin: 1rem 0;"&gt;
+&lt;tbody style="border: none;"&gt;
+&lt;tr style="background: none; border: none;"&gt;
+&lt;td style="border: none; padding: 0; width: 2.5rem;"&gt;&lt;/td&gt;
+&lt;td style="border: none; padding: 0; text-align: center;"&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;
+&lt;td style="border: none; padding: 0; width: 2.5rem; text-align: right;"&gt;(1)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;into a triangular grid. Each interior entry is the sum of the two entries above
+it. It is a lovely little object, and it turns out we can build the whole thing
+&lt;em&gt;at compile time&lt;/em&gt; in modern Fortran, so that the running program does nothing
+but print a table of literals.&lt;/p&gt;</description><content:encoded><![CDATA[<p><a href="https://en.wikipedia.org/wiki/Pascal%27s_triangle">Pascal&rsquo;s triangle</a> — also
+known as <strong>Khayyam&rsquo;s triangle</strong> after the Persian mathematician and poet Omar
+Khayyam — arranges the <a href="https://en.wikipedia.org/wiki/Binomial_coefficient">binomial
+coefficients</a></p>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(1)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>into a triangular grid. Each interior entry is the sum of the two entries above
+it. It is a lovely little object, and it turns out we can build the whole thing
+<em>at compile time</em> in modern Fortran, so that the running program does nothing
+but print a table of literals.</p>
+<p>Here is the complete program:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">! pascal.f90 -- prints Pascal&#39;s triangle
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span><span style="color:#8839ef">implicit</span> <span style="color:#8839ef">none</span>
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">integer</span>, <span style="color:#8839ef">parameter</span> <span style="color:#d20f39">::</span> nmax <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">8</span>
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">character</span>(<span style="color:#04a5e5">len</span><span style="color:#04a5e5;font-weight:bold">=*</span>), <span style="color:#8839ef">parameter</span> <span style="color:#d20f39">::</span> fmt <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#40a02b">&#39;(9(I6,:,1X))&#39;</span>   <span style="color:#9ca0b0;font-style:italic">! 9 = nmax + 1
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span><span style="color:#8839ef">integer</span>, <span style="color:#8839ef">parameter</span> <span style="color:#d20f39">::</span> pascal(<span style="color:#fe640b">0</span>:nmax, <span style="color:#fe640b">0</span>:nmax) <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">reshape</span>( &amp;
+</span></span><span style="display:flex;"><span>    [([( <span style="color:#04a5e5">product</span>([(i, <span style="color:#8839ef">integer</span> <span style="color:#d20f39">::</span> i <span style="color:#04a5e5;font-weight:bold">=</span> n<span style="color:#04a5e5;font-weight:bold">-</span>k<span style="color:#04a5e5;font-weight:bold">+</span><span style="color:#fe640b">1</span>, n)])  &amp;
+</span></span><span style="display:flex;"><span>       <span style="color:#04a5e5;font-weight:bold">/</span> <span style="color:#04a5e5">product</span>([(i, <span style="color:#8839ef">integer</span> <span style="color:#d20f39">::</span> i <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>, k)]),     &amp;
+</span></span><span style="display:flex;"><span>       <span style="color:#8839ef">integer</span> <span style="color:#d20f39">::</span> k <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0</span>, nmax)], <span style="color:#8839ef">integer</span> <span style="color:#d20f39">::</span> n <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0</span>, nmax)], [nmax<span style="color:#04a5e5;font-weight:bold">+</span><span style="color:#fe640b">1</span>, nmax<span style="color:#04a5e5;font-weight:bold">+</span><span style="color:#fe640b">1</span>])
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">write</span>(<span style="color:#04a5e5;font-weight:bold">*</span>,fmt) pascal
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span></span></span></code></pre></div>
+<p>Compiling and running it with <a href="https://flang.llvm.org/docs/">flang</a> 22.1.8:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>$ flang -pedantic pascal.f90 &amp;&amp; ./a.out
+</span></span><span style="display:flex;"><span>     1      0      0      0      0      0      0      0      0
+</span></span><span style="display:flex;"><span>     1      1      0      0      0      0      0      0      0
+</span></span><span style="display:flex;"><span>     1      2      1      0      0      0      0      0      0
+</span></span><span style="display:flex;"><span>     1      3      3      1      0      0      0      0      0
+</span></span><span style="display:flex;"><span>     1      4      6      4      1      0      0      0      0
+</span></span><span style="display:flex;"><span>     1      5     10     10      5      1      0      0      0
+</span></span><span style="display:flex;"><span>     1      6     15     20     15      6      1      0      0
+</span></span><span style="display:flex;"><span>     1      7     21     35     35     21      7      1      0
+</span></span><span style="display:flex;"><span>     1      8     28     56     70     56     28      8      1</span></span></code></pre></div>
+<h2 id="how-it-works">How it works</h2>
+<p>The key observation is that <code>pascal</code> is a <code>parameter</code> — a named constant. Its
+initializer must therefore be a <em>constant expression</em>, which means the compiler
+evaluates every entry while it is compiling. At run time there is no arithmetic
+left to do; the executable simply prints nine rows of pre-computed integers.</p>
+<p>Don&rsquo;t take my word for it — <a href="https://godbolt.org/z/TKdMP41rd">see for yourself on Compiler
+Explorer</a>. The assembly contains no loops and
+no multiplications, just the finished table sitting in the data section as 81
+integer literals (row by row, exactly as printed):</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#04a5e5">_QQroX9x9xi4X0:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1e66f5">.long</span>   <span style="color:#fe640b">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1e66f5">.long</span>   <span style="color:#fe640b">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1e66f5">.long</span>   <span style="color:#fe640b">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1e66f5">...</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1e66f5">.long</span>   <span style="color:#fe640b">28</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1e66f5">.long</span>   <span style="color:#fe640b">8</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1e66f5">.long</span>   <span style="color:#fe640b">1</span></span></span></code></pre></div>
+<p>The initializer itself is just equation (1) in disguise: the first <code>product</code>
+multiplies the integers from <code>n-k+1</code> up to <code>n</code>, the second gives the factorial
+of <code>k</code>, and their integer quotient is the binomial coefficient — the division
+is always exact. Two edge cases fall out for free. For <code>k = 0</code> both ranges are
+empty, and the <em>empty product</em> is <code>1</code> — exactly the value we want. And for
+<code>k &gt; n</code> the first range runs through zero, so the numerator vanishes — those
+are the zeros filling the upper half of the table. Finally, with <code>k</code> as the
+innermost implied-<code>do</code> index the flat list comes out one triangle row after
+another, which is precisely the storage order in which <code>write</code> prints the
+reshaped array.</p>
+<h3 id="why-fortran-2018">Why Fortran 2018?</h3>
+<p>The youngest ingredient is declaring the implied-<code>do</code> index <strong>inside the array
+constructor</strong> — the <code>integer :: i = ...</code> and friends above. Fortran 2008
+allowed this for <code>do concurrent</code> and <code>forall</code>; Fortran 2018 extended it to
+array constructors and <code>data</code> statements (§5.18 of John Reid&rsquo;s <a href="https://wg5-fortran.org/N2151-N2200/ISO-IECJTC1-SC22-WG5_N2161_The_New_Features_of_Fortran_2018.pdf"><em>The New
+Features of Fortran
+2018</em></a>).
+As Steve Lionel <a href="https://fortran-lang.discourse.group/t/declare-variables-inside-loops/3395/5">explains on Fortran
+Discourse</a>,
+the index is a construct-scope integer regardless — the real novelty is
+stating its kind in place, so no <code>integer :: i, k, n</code> declarations clutter the
+surrounding scope. On paper the feature is from 2018; in practice the state of
+affairs is rather sad. Of the compilers I tried, gfortran 16.1, lfortran 0.59,
+nvfortran 26.5, and NAG 7.2 all reject the program, and ifx 2025.3 compiles it
+but prints a wrong table — leaving flang as the only compiler I know of that
+gets it right.</p>
+<h3 id="a-note-on-the-format">A note on the format</h3>
+<p>The edit descriptor <code>'(9(I6,:,1X))'</code> prints <code>nmax + 1</code> integers per line in
+six-character fields, separated by a space; the colon (<code>:</code>) stops the format
+once the data list is exhausted. The repeat count <code>9</code> is the one thing that
+does not follow <code>nmax</code> automatically — change one and you must touch the
+other, as there is no convenient way to splice an integer into a character
+constant expression.</p>
+<h2 id="further-reading">Further reading</h2>
+<p>Compile-time evaluation is still young territory in Fortran. A few more
+explorations of what is possible today:</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=zL9sNsjbM-w"><em>Some adventures with compile time evaluation</em></a>,
+Mohd Furquan, FortranCon 2021</li>
+<li><a href="https://fortran-lang.discourse.group/t/computing-at-compile-time/3044"><em>Computing at compile time</em></a>,
+Fortran Discourse, March 2022</li>
+<li><a href="https://community.intel.com/t5/Intel-Fortran-Compiler/Compile-Time-Computing/td-p/1588060"><em>Compile Time Computing</em></a>,
+Intel Fortran Compiler Forum, April 2024</li>
+</ul>
+<p>And if you enjoy the triangle itself, it stars in one of my favourite Veritasium
+videos, <a href="https://www.youtube.com/watch?v=gMlf1ELvRzc"><em>The Discovery That Transformed Pi</em></a>
+— highly recommended.</p>
+]]></content:encoded></item><item><title>Is the Humble For-Loop a Good Way to Search an Array?</title><link>https://ivan-pi.github.io/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</link><pubDate>Sat, 22 Nov 2025 00:00:00 +0100</pubDate><guid>https://ivan-pi.github.io/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</guid><description>&lt;p&gt;While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:&lt;/p&gt;
 &lt;blockquote class="twitter-tweet"&gt;&lt;p lang="en" dir="ltr"&gt;C devs will tell you this is peak API and Programming Languages design,&lt;br&gt;&lt;br&gt;And nothing better has been invented since 1972. &lt;a href="https://t.co/mqELKMVEOb"&gt;pic.twitter.com/mqELKMVEOb&lt;/a&gt;&lt;/p&gt;&amp;mdash; Dmitrii Kovanikov (@ChShersh) &lt;a href="https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw"&gt;November 20, 2025&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src="https://platform.twitter.com/widgets.js" charset="utf-8"&gt;&lt;/script&gt;
 &lt;p&gt;This got me wondering: how fast &lt;em&gt;are&lt;/em&gt; &amp;ldquo;modern&amp;rdquo; alternatives?&lt;/p&gt;
 &lt;h2 id="searching-for-an-element-in-c"&gt;Searching for an element in C++&lt;/h2&gt;

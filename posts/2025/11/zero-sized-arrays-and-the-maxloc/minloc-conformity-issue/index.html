@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zero-sized arrays and the maxloc/minloc conformity issue&nbsp;|&nbsp;Ivan Pribec</title>
+<meta
+  name="title"
+  content="Zero-sized arrays and the maxloc/minloc conformity issue"
+/>
+<meta
+  name="description"
+  content="Reference links:
+
+Intel forum thread: https://community.intel.com/t5/Intel-Fortran-Compiler/Incorrect-minloc-maxloc-results-with-ifx-2024-0/td-p/1549287
+
+GodBolt reproducer
+https://godbolt.org/z/aWf119h3a
+In a recent iteration of LU factorization routine in Fortran, I stumbled into a failing test,
+
+
+
+
+
+
+ 5/12 Test  #5: find_pivot .......................***Failed    0.06 sec
+testing find_pivot_maxloc
+4
+The test which was failing was,
+
+
+
+
+
+
+        ! Empty array
+        x = [real(dp) ::]
+        res = find_pivot(x, size(x))
+        if (res /= 0) error stop 4
+and the kernel that was failing looked like this,
+
+
+
+
+
+
+    pure integer function find_pivot_maxloc(a, n) result(ip)
+        integer,  intent(in) :: n
+        real(dp), intent(in) :: a(n)
+        ip = maxloc(abs(a), dim=1)
+    end function
+In BLAS, they use the IDAMAX function for this purpose."
+/>
+<meta
+  name="keywords"
+  content="Fortran,maxloc,minloc,compilers,"
+/>
+
+  <meta name="author" content="Ivan Pribec" />
+
+
+
+
+<meta property="og:url" content="http://localhost:1313/posts/2025/11/zero-sized-arrays-and-the-maxloc/minloc-conformity-issue/">
+  <meta property="og:site_name" content="Ivan Pribec">
+  <meta property="og:title" content="Zero-sized arrays and the maxloc/minloc conformity issue">
+  <meta property="og:description" content="Reference links:
+Intel forum thread: https://community.intel.com/t5/Intel-Fortran-Compiler/Incorrect-minloc-maxloc-results-with-ifx-2024-0/td-p/1549287 GodBolt reproducer https://godbolt.org/z/aWf119h3a
+In a recent iteration of LU factorization routine in Fortran, I stumbled into a failing test,
+5/12 Test #5: find_pivot .......................***Failed 0.06 sec testing find_pivot_maxloc 4 The test which was failing was,
+! Empty array x = [real(dp) ::] res = find_pivot(x, size(x)) if (res /= 0) error stop 4 and the kernel that was failing looked like this,
+pure integer function find_pivot_maxloc(a, n) result(ip) integer, intent(in) :: n real(dp), intent(in) :: a(n) ip = maxloc(abs(a), dim=1) end function In BLAS, they use the IDAMAX function for this purpose.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-11-24T00:00:00+01:00">
+    <meta property="article:modified_time" content="2025-11-24T00:00:00+01:00">
+    <meta property="article:tag" content="Fortran">
+    <meta property="article:tag" content="Maxloc">
+    <meta property="article:tag" content="Minloc">
+    <meta property="article:tag" content="Compilers">
+
+
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Zero-sized arrays and the maxloc/minloc conformity issue">
+  <meta name="twitter:description" content="Reference links:
+Intel forum thread: https://community.intel.com/t5/Intel-Fortran-Compiler/Incorrect-minloc-maxloc-results-with-ifx-2024-0/td-p/1549287 GodBolt reproducer https://godbolt.org/z/aWf119h3a
+In a recent iteration of LU factorization routine in Fortran, I stumbled into a failing test,
+5/12 Test #5: find_pivot .......................***Failed 0.06 sec testing find_pivot_maxloc 4 The test which was failing was,
+! Empty array x = [real(dp) ::] res = find_pivot(x, size(x)) if (res /= 0) error stop 4 and the kernel that was failing looked like this,
+pure integer function find_pivot_maxloc(a, n) result(ip) integer, intent(in) :: n real(dp), intent(in) :: a(n) ip = maxloc(abs(a), dim=1) end function In BLAS, they use the IDAMAX function for this purpose.">
+
+
+
+
+
+  <meta itemprop="name" content="Zero-sized arrays and the maxloc/minloc conformity issue">
+  <meta itemprop="description" content="Reference links:
+Intel forum thread: https://community.intel.com/t5/Intel-Fortran-Compiler/Incorrect-minloc-maxloc-results-with-ifx-2024-0/td-p/1549287 GodBolt reproducer https://godbolt.org/z/aWf119h3a
+In a recent iteration of LU factorization routine in Fortran, I stumbled into a failing test,
+5/12 Test #5: find_pivot .......................***Failed 0.06 sec testing find_pivot_maxloc 4 The test which was failing was,
+! Empty array x = [real(dp) ::] res = find_pivot(x, size(x)) if (res /= 0) error stop 4 and the kernel that was failing looked like this,
+pure integer function find_pivot_maxloc(a, n) result(ip) integer, intent(in) :: n real(dp), intent(in) :: a(n) ip = maxloc(abs(a), dim=1) end function In BLAS, they use the IDAMAX function for this purpose.">
+  <meta itemprop="datePublished" content="2025-11-24T00:00:00+01:00">
+  <meta itemprop="dateModified" content="2025-11-24T00:00:00+01:00">
+  <meta itemprop="wordCount" content="414">
+  <meta itemprop="keywords" content="Fortran,Maxloc,Minloc,Compilers">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+    
+    
+    
+    <link href="/bundle.min.css" rel="stylesheet" />
+
+    
+
+    
+
+
+    
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    crossorigin="anonymous" />
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    crossorigin="anonymous"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '$', right: '$', display: false }
+      ],
+      throwOnError: false
+    });"></script>
+  <link rel="stylesheet" href="/css/address.css" />
+</head>
+
+  <body>
+    <header>
+      <nav>
+  <a
+    href="/"
+    
+    >home</a
+  >
+
+  <a
+    href="/posts/"
+    
+    >blog</a
+  >
+
+  <a
+    href="/code/"
+    
+    >code</a
+  >
+
+  <a
+    href="/links/"
+    
+    >links</a
+  >
+
+  <a
+    href="/now/"
+    
+    >now</a
+  >
+
+
+</nav>
+    <h1>Zero-sized arrays and the maxloc/minloc conformity issue</h1>
+
+
+    </header>
+    <main>
+      
+  
+  
+    
+      <p>
+        <i>
+          <time
+            style="color: var(--text-light);"
+            datetime="2025-11-24"
+            pubdate
+          >
+            2025-11-24
+          </time>
+        </i>
+      </p>
+    
+  
+  
+  <content>
+    <p>Reference links:</p>
+<ul>
+<li>Intel forum thread: <a href="https://community.intel.com/t5/Intel-Fortran-Compiler/Incorrect-minloc-maxloc-results-with-ifx-2024-0/td-p/1549287">https://community.intel.com/t5/Intel-Fortran-Compiler/Incorrect-minloc-maxloc-results-with-ifx-2024-0/td-p/1549287</a></li>
+</ul>
+<p>GodBolt reproducer
+<a href="https://godbolt.org/z/aWf119h3a">https://godbolt.org/z/aWf119h3a</a></p>
+<p>In a recent iteration of LU factorization routine in Fortran, I stumbled into a failing test,</p>
+
+
+
+
+
+
+<pre tabindex="0"><code> 5/12 Test  #5: find_pivot .......................***Failed    0.06 sec
+testing find_pivot_maxloc
+4</code></pre>
+<p>The test which was failing was,</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>        ! Empty array
+        x = [real(dp) ::]
+        res = find_pivot(x, size(x))
+        if (res /= 0) error stop 4</code></pre>
+<p>and the kernel that was failing looked like this,</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>    pure integer function find_pivot_maxloc(a, n) result(ip)
+        integer,  intent(in) :: n
+        real(dp), intent(in) :: a(n)
+        ip = maxloc(abs(a), dim=1)
+    end function</code></pre>
+<p>In BLAS, they use the <code>IDAMAX</code> function for this purpose.</p>
+<p>One prompt later I had created a small reproducer.
+You can check the failing test for yourself in Compiler Explorer: <a href="https://godbolt.org/z/aWf119h3a">https://godbolt.org/z/aWf119h3a</a></p>
+<p>A quick Google search directed immediately directed me an Intel Fortran Forum thread from 2023: <a href="https://community.intel.com/t5/Intel-Fortran-Compiler/Incorrect-minloc-maxloc-results-with-ifx-2024-0/td-p/1549287">https://community.intel.com/t5/Intel-Fortran-Compiler/Incorrect-minloc-maxloc-results-with-ifx-2024-0/td-p/1549287</a></p>
+<p>As Steve Lionel explains in that thread,</p>
+<blockquote>
+<p>The issue is that earlier standards didn&rsquo;t specify what happens with zero-sized arrays, and adding checks for that slows code down. Intel has traditionally been reluctant to make changes that reduce performance, though it has happened (one no longer needs /assume:realloc_lhs, for example).  Changing the default here would slow down everyone&rsquo;s MAXLOC/MINLOC, so there will be some resistance.</p>
+</blockquote>
+<p>The suggested fix for this issue, is adding the compiler flag <code>-standard-semantics</code>.
+Note that the flags <code>-stand f18</code> doesn&rsquo;t change semantics and controls diagnostics only.
+The issue with the <code>-standard-semantics</code> flag is it&rsquo;s a &ldquo;big hammer&rdquo; that influences many areas, so it can have an impact on performance in places that you may want to leave as is.</p>
+<p>An easy fix for this issue is to just add our own empty check,</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>   ip = 0
+   if (n &lt; 1) return
+   ip = maxloc(abs(a),dim=1)</code></pre>
+<p>but now we have the downside of performing two-checks with other compilers.</p>
+<p>At the cost of having ugly code, we could guard the new statement like this,</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>#ifdef BAD_COMPILER
+	if (n &lt; 1) return
+#endif</code></pre>
+<p>This avoid double-checking, unless circumstances lead us to use -standard-semantics in our build. To avoid that we&rsquo;d need a new guard depending on the compiler flags, ugh&hellip;</p>
+<p>Now in practice, within the library, we in fact never call maxloc with an empty arrays, so perhaps the test is pointless to begin with.
+But you never know when the day will arrive the function is copied in to a different project and the empty array behaviors comes to bite you.</p>
+<p>For future projects consider adding the following settings to your CMake project or response file.</p>
+<p>add_compile_options(
+&ldquo;$&lt;$&lt;COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM&gt;:-standard-semantics&gt;&rdquo;)</p>
+
+  </content>
+  
+    
+    
+      <p>
+        
+          <a href="/tags/fortran/">#Fortran</a>&nbsp;&nbsp;
+        
+          <a href="/tags/maxloc/">#Maxloc</a>&nbsp;&nbsp;
+        
+          <a href="/tags/minloc/">#Minloc</a>&nbsp;&nbsp;
+        
+          <a href="/tags/compilers/">#Compilers</a>&nbsp;&nbsp;
+        
+      </p>
+    
+    
+    
+      <div class="flex-between" style="margin-top: 3rem;">
+        
+          <a href="/posts/2025/11/measuring-the-performance-of-the-norm2-intrinsic/" rel="prev" aria-label="Previous post: Measuring the performance of the norm2-intrinsic">
+            <span>←</span>
+            <span>Measuring the performance of the norm2-intrinsic</span>
+          </a>
+        
+        
+          <a href="/posts/2026/07/what-does-maxloc-return-for-an-empty-array/" rel="next" aria-label="Next post: What Does MAXLOC Return for an Empty Array?">
+            <span>What Does MAXLOC Return for an Empty Array?</span>
+            <span>→</span>
+          </a>
+        
+      </div>
+    
+  
+
+    </main>
+    <footer>
+      
+
+      
+  <span>© 2025 — Ivan Pribec — All rights reserved.</span>
+
+
+
+    </footer>
+
+    
+</body>
+</html>

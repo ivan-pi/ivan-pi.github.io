@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpenMP conditional timing&nbsp;|&nbsp;Ivan Pribec</title>
+<meta
+  name="title"
+  content="OpenMP conditional timing"
+/>
+<meta
+  name="description"
+  content="Wrapping OpenMP timing functions
+Often-times when writing an OpenMP program, I&rsquo;d like to time sections of the program to analyze the parallel speed-up.
+This requires measuring both the sequential performance (without OpenMP) versus the parallel performance.
+OpenMP is designed to be used in way, such that the same program can be a valid OpenMP and non-OpenMP program.
+This is mainly achieved using directives.
+In some circumstances it is necessary to call OpenMP runtime functions, and in those situations it is helpful to use the conditional compilation features."
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+
+  <meta name="author" content="Ivan Pribec" />
+
+
+
+
+<meta property="og:url" content="http://localhost:1313/posts/2025/11/openmp-conditional-timing/">
+  <meta property="og:site_name" content="Ivan Pribec">
+  <meta property="og:title" content="OpenMP conditional timing">
+  <meta property="og:description" content="Wrapping OpenMP timing functions Often-times when writing an OpenMP program, I’d like to time sections of the program to analyze the parallel speed-up. This requires measuring both the sequential performance (without OpenMP) versus the parallel performance.
+OpenMP is designed to be used in way, such that the same program can be a valid OpenMP and non-OpenMP program. This is mainly achieved using directives. In some circumstances it is necessary to call OpenMP runtime functions, and in those situations it is helpful to use the conditional compilation features.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-11-23T00:00:00+01:00">
+    <meta property="article:modified_time" content="2025-11-23T00:00:00+01:00">
+
+
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="OpenMP conditional timing">
+  <meta name="twitter:description" content="Wrapping OpenMP timing functions Often-times when writing an OpenMP program, I’d like to time sections of the program to analyze the parallel speed-up. This requires measuring both the sequential performance (without OpenMP) versus the parallel performance.
+OpenMP is designed to be used in way, such that the same program can be a valid OpenMP and non-OpenMP program. This is mainly achieved using directives. In some circumstances it is necessary to call OpenMP runtime functions, and in those situations it is helpful to use the conditional compilation features.">
+
+
+
+
+
+  <meta itemprop="name" content="OpenMP conditional timing">
+  <meta itemprop="description" content="Wrapping OpenMP timing functions Often-times when writing an OpenMP program, I’d like to time sections of the program to analyze the parallel speed-up. This requires measuring both the sequential performance (without OpenMP) versus the parallel performance.
+OpenMP is designed to be used in way, such that the same program can be a valid OpenMP and non-OpenMP program. This is mainly achieved using directives. In some circumstances it is necessary to call OpenMP runtime functions, and in those situations it is helpful to use the conditional compilation features.">
+  <meta itemprop="datePublished" content="2025-11-23T00:00:00+01:00">
+  <meta itemprop="dateModified" content="2025-11-23T00:00:00+01:00">
+  <meta itemprop="wordCount" content="489">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+    
+    
+    
+    <link href="/bundle.min.css" rel="stylesheet" />
+
+    
+
+    
+
+
+    
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    crossorigin="anonymous" />
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    crossorigin="anonymous"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '$', right: '$', display: false }
+      ],
+      throwOnError: false
+    });"></script>
+  <link rel="stylesheet" href="/css/address.css" />
+</head>
+
+  <body>
+    <header>
+      <nav>
+  <a
+    href="/"
+    
+    >home</a
+  >
+
+  <a
+    href="/posts/"
+    
+    >blog</a
+  >
+
+  <a
+    href="/code/"
+    
+    >code</a
+  >
+
+  <a
+    href="/links/"
+    
+    >links</a
+  >
+
+  <a
+    href="/now/"
+    
+    >now</a
+  >
+
+
+</nav>
+    <h1>OpenMP conditional timing</h1>
+
+
+    </header>
+    <main>
+      
+  
+  
+    
+      <p>
+        <i>
+          <time
+            style="color: var(--text-light);"
+            datetime="2025-11-23"
+            pubdate
+          >
+            2025-11-23
+          </time>
+        </i>
+      </p>
+    
+  
+  
+  <content>
+    <h1 id="wrapping-openmp-timing-functions">Wrapping OpenMP timing functions</h1>
+<p>Often-times when writing an OpenMP program, I&rsquo;d like to time sections of the program to analyze the parallel speed-up.
+This requires measuring both the sequential performance (without OpenMP) versus the parallel performance.</p>
+<p>OpenMP is designed to be used in way, such that the same program can be a valid OpenMP and non-OpenMP program.
+This is mainly achieved using directives.
+In some circumstances it is necessary to call OpenMP runtime functions, and in those situations it is helpful to use the conditional compilation features.</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span>   nthreads <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#d20f39">!$</span> nthreads <span style="color:#04a5e5;font-weight:bold">=</span> omp_get_num_threads()</span></span></code></pre></div>
+<p>As a side-note; if you plan to use OpenMP, use three elements for spacing.</p>
+<p>It is also possible to the use the full preprocessor syntax, even if non-standard in Fortran.
+Most compilers define a preprocessor anyways.
+You can use it like this:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#if defined(_OPENMP)
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>	nthreads <span style="color:#04a5e5;font-weight:bold">=</span> omp_get_num_threads()
+</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#else
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>	nthreads <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#d20f39">#</span><span style="color:#8839ef">endif</span></span></span></code></pre></div>
+<p>Normally I will use the conditional compilation syntax, just because it is easier to read.
+When optimizations are turned on, the compiler dead-code elimination pass should eliminate any redundant statements.</p>
+<p>However this doesn&rsquo;t work always.
+Take the following function:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">double precision</span> <span style="color:#8839ef">function</span> walltime()
+</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">!$ use omp_lib, only: omp_get_wtime
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>
+</span></span><span style="display:flex;"><span>   <span style="color:#8839ef">call</span> <span style="color:#04a5e5">cpu_time</span>(walltime)
+</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">!$ walltime = omp_get_wtime()
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>
+</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span> <span style="color:#8839ef">function</span></span></span></code></pre></div>
+<p>The desired effect would be to call the OpenMP timing function only when OpenMP is turned on.
+By inspecting the assembly, we can easily determine, this is not the case.
+The compiler preserves both function calls.</p>
+<p>I&rsquo;m guessing that because the <code>cpu_time</code> function is impure; i.e. it involves the reading of some global register.
+As a result, the compiler is not free to eliminate this call.</p>
+<p>The only viable workaround is to use conditional compilation:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>double precision function walltime()
+#if defined(_OPENMP)
+   use omp_lib, only: omp_get_wtime
+   walltime = omp_get_wtime()
+#else
+   call cpu_time(walltime)
+#endif
+end function</code></pre>
+<p>What about this:</p>
+
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">!$ if (.true.) then
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">!$    walltime = omp_get_wtime()
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">!$ else
+</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>      <span style="color:#8839ef">call</span> <span style="color:#04a5e5">cpu_time</span>(walltime)
+</span></span><span style="display:flex;"><span><span style="color:#d20f39">!$</span> <span style="color:#8839ef">endif</span></span></span></code></pre></div>
+<h2 id="the-opposite-solution">The opposite solution</h2>
+<p>An opposite solution can be sought by sticking with the OpenMP timing function.
+Some compilers support this mode of execution, using the <code>-qopenmp-stubs</code> flag.</p>
+<p>A stub library used to be part of older OpenMP specs.
+The stub routines should only be used when OpenMP directives are not in effect, and the program assumes sequential execution.</p>
+<p>We can supply the timer function using an external function:</p>
+
+
+
+
+
+
+<pre tabindex="0"><code>double precision function omp_get_wtime()
+	call cpu_time(omp_get_wtime)
+! or
+!   integer, parameter :: dp = kind(1.0d0)
+!	integer(selected_int_kind(18)) :: count, count_rate
+!   call system_clock(count,count_rate)
+!	omp_get_wtime = real(count,dp) / real(count_rate,dp)
+end function</code></pre>
+<p>One thing you need to watch out for is the name-mangling.
+Does your compiler expose Fortran external routines or C ones?
+At source-level it is difficult to tell.</p>
+<p>By inspection I&rsquo;ve determined that Intel compilers use <code>bind(c)</code> interfaces.</p>
+<p>Compilers supporting OpenMP are free to decide if they will provide modules,
+include files with interfaces, or both. The include file is deprecated with OpenMP 6.0 and will be removed in the future.</p>
+<p>Stub libraries? Which vendors provide them?</p>
+
+  </content>
+  
+    
+    
+    
+    
+      <div class="flex-between" style="margin-top: 3rem;">
+        
+          <a href="/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/" rel="prev" aria-label="Previous post: Is the Humble For-Loop a Good Way to Search an Array?">
+            <span>←</span>
+            <span>Is the Humble For-Loop a Good Way to Search an Array?</span>
+          </a>
+        
+        
+          <a href="/posts/2025/11/measuring-the-performance-of-the-norm2-intrinsic/" rel="next" aria-label="Next post: Measuring the performance of the norm2-intrinsic">
+            <span>Measuring the performance of the norm2-intrinsic</span>
+            <span>→</span>
+          </a>
+        
+      </div>
+    
+  
+
+    </main>
+    <footer>
+      
+
+      
+  <span>© 2025 — Ivan Pribec — All rights reserved.</span>
+
+
+
+    </footer>
+
+    
+</body>
+</html>
