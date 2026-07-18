@@ -1,61 +1,38 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
-  <channel>
-    <title>Ivan Pribec</title>
-    <link>/tags/laguerre/</link>
-    <description>Recent content on Ivan Pribec</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright>
-    <lastBuildDate>Wed, 29 Dec 2021 00:00:00 +0100</lastBuildDate>
-    <atom:link href="/tags/laguerre/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Evaluating the closed form coefficients of Laguerre polynomials</title>
-      <link>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link>
-      <pubDate>Wed, 29 Dec 2021 00:00:00 +0100</pubDate>
-      <guid>/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid>
-      <description>&lt;h1 id=&#34;evaluating-the-closed-form-coefficients-of-laguerre-polynomials&#34;&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Ivan Pribec</title><link>https://ivan-pi.github.io/tags/laguerre/</link><description>Recent content on Ivan Pribec</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright><lastBuildDate>Wed, 29 Dec 2021 00:00:00 +0100</lastBuildDate><atom:link href="https://ivan-pi.github.io/tags/laguerre/index.xml" rel="self" type="application/rss+xml"/><item><title>Evaluating the closed form coefficients of Laguerre polynomials</title><link>https://ivan-pi.github.io/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link><pubDate>Wed, 29 Dec 2021 00:00:00 +0100</pubDate><guid>https://ivan-pi.github.io/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid><description>&lt;h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials"&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;
 &lt;p&gt;For some numerical applications it can be useful to work with the closed form
 expression for Laguerre polynomials. The closed form is given by&lt;/p&gt;
-
-&lt;table style=&#34;width: 100%&#34;&gt;
-&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
-&lt;td&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;
-&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(1)&lt;/td&gt;
+&lt;table style="width: 100%; border: none; margin: 1rem 0;"&gt;
+&lt;tbody style="border: none;"&gt;
+&lt;tr style="background: none; border: none;"&gt;
+&lt;td style="border: none; padding: 0; width: 2.5rem;"&gt;&lt;/td&gt;
+&lt;td style="border: none; padding: 0; text-align: center;"&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;
+&lt;td style="border: none; padding: 0; width: 2.5rem; text-align: right;"&gt;(1)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
 &lt;/table&gt;
-
-
-&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;
-
-&lt;table style=&#34;width: 100%&#34;&gt;
-&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
-&lt;td&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;
-&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(2)&lt;/td&gt;
-&lt;/table&gt;
-
-
-&lt;p&gt;Since $n$ and $k$ are both integers, the coefficients are rational numbers.
-For most computational applications we will likely only need to work with
-floating point approximations of the coefficients.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials">Evaluating the closed form coefficients of Laguerre polynomials</h1>
+&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;</description><content:encoded><![CDATA[<h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials">Evaluating the closed form coefficients of Laguerre polynomials</h1>
 <p>For some numerical applications it can be useful to work with the closed form
 expression for Laguerre polynomials. The closed form is given by</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$</td>
-<td style="width: 10000px; text-align: right;">(1)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(1)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>We can evaluate the coefficients with the help of the factorial formula</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
-<td style="width: 10000px; text-align: right;">(2)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(2)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>Since $n$ and $k$ are both integers, the coefficients are rational numbers.
 For most computational applications we will likely only need to work with
@@ -64,13 +41,15 @@ floating point approximations of the coefficients.</p>
 be careful to avoid overflow. For example if we try to compute $$n!$$ using default Fortran integers (32-bit), it will only be possible to calculate coefficients for $n \leq 12$.</p>
 <p>To avoid such issues we can calculate the coefficients using the
 the gamma function $\Gamma$ and the logarithm thereof. This follows from the helpful observation that for integer arguments</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$\Gamma(n&#43;1) = n!$$</td>
-<td style="width: 10000px; text-align: right;">(3)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\Gamma(n&#43;1) = n!$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(3)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>For the coefficients of $L_n(x)$, a straightforward Fortran implementation might look as follows:</p>
 
@@ -97,28 +76,29 @@ The coefficients returned by the procedure are given in <em>ascending</em> order
 powers of $x$.</p>
 <p>A similar procedure can be written for the derivative of the Laguerre polynomial.
 These are given be the expression</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$L&#39;_n(x) = \sum_{k=0}^n \binom{n}{k}\frac{(-1)^k}{k!} k x^{k-1}$$</td>
-<td style="width: 10000px; text-align: right;">(4)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$L&#39;_n(x) = \sum_{k=0}^n \binom{n}{k}\frac{(-1)^k}{k!} k x^{k-1}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(4)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>Here we should emphasize that the $i$-th derivative of a Laguerre polynomial
 is polynomial of order ${n - i}$ (a polynomial of order $n$
 is described by $n+1$ coefficients).</p>
 <p>The implementation can also be adapted easily to return the coefficients of
 the generalized Laguerre polynomials with the following closed form expression</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$L_n^{(\alpha)}(x) = \sum_{k=0}^n (-1)^k \binom{n &#43; \alpha}{ n - k} \frac{x^k}{k!}$$</td>
-<td style="width: 10000px; text-align: right;">(5)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$L_n^{(\alpha)}(x) = \sum_{k=0}^n (-1)^k \binom{n &#43; \alpha}{ n - k} \frac{x^k}{k!}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(5)</td>
+    </tr>
+  </tbody>
 </table>
 
-
-]]></content:encoded>
-    </item>
-  </channel>
-</rss>
+]]></content:encoded></item></channel></rss>

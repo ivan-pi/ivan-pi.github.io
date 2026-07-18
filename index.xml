@@ -1,183 +1,248 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
-  <channel>
-    <title>Ivan Pribec</title>
-    <link>//localhost:1313/</link>
-    <description>Recent content on Ivan Pribec</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright>
-    <lastBuildDate>Sun, 23 Nov 2025 00:00:00 +0100</lastBuildDate>
-    <atom:link href="//localhost:1313/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Measuring the performance of the norm2-intrinsic</title>
-      <link>//localhost:1313/posts/2025/11/measuring-the-performance-of-the-norm2-intrinsic/</link>
-      <pubDate>Sun, 23 Nov 2025 00:00:00 +0100</pubDate>
-      <guid>//localhost:1313/posts/2025/11/measuring-the-performance-of-the-norm2-intrinsic/</guid>
-      <description>&lt;p&gt;A couple months ago, Jean-Christophe Loiseau from Art et Métiers Institute of Technology published a &lt;a href=&#34;https://loiseaujc.github.io/posts/blog-title/jacobi_experiments.html&#34;&gt;very nice article&lt;/a&gt; about speeding-up the Jacobi method in Fortran using multi-threading.
-If you are interested in Fortran or you&amp;rsquo;re a student in scientific computing, I can highly recommend reading it.&lt;/p&gt;
-&lt;p&gt;One thing that piqued my interest in the blog was the following sentence,&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Either way [of computing the two-norm] is fine, &lt;code&gt;norm2&lt;/code&gt; is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>A couple months ago, Jean-Christophe Loiseau from Art et Métiers Institute of Technology published a <a href="https://loiseaujc.github.io/posts/blog-title/jacobi_experiments.html">very nice article</a> about speeding-up the Jacobi method in Fortran using multi-threading.
-If you are interested in Fortran or you&rsquo;re a student in scientific computing, I can highly recommend reading it.</p>
-<p>One thing that piqued my interest in the blog was the following sentence,</p>
-<blockquote>
-<p>Either way [of computing the two-norm] is fine, <code>norm2</code> is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.</p>
-</blockquote>
-<p>The two ways which are discussed are using the intrinsic function, i.e. <code>norm2(u - v)</code>, or using a <code>do concurrent</code> loop construct:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span>	<span style="color:#8839ef">real</span>(dp) <span style="color:#d20f39">::</span> l2_norm
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    l2_norm <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0.0_dp</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">do</span> <span style="color:#8839ef">concurrent</span>(i<span style="color:#04a5e5;font-weight:bold">=</span><span style="color:#fe640b">2</span>:nx<span style="color:#04a5e5;font-weight:bold">-</span><span style="color:#fe640b">1</span>, j<span style="color:#04a5e5;font-weight:bold">=</span><span style="color:#fe640b">2</span>:ny<span style="color:#04a5e5;font-weight:bold">-</span><span style="color:#fe640b">1</span>) reduce(<span style="color:#04a5e5;font-weight:bold">+</span>:l2_norm)
-</span></span><span style="display:flex;"><span>        l2_norm <span style="color:#04a5e5;font-weight:bold">=</span> l2_norm <span style="color:#04a5e5;font-weight:bold">+</span> (u(i, j) <span style="color:#04a5e5;font-weight:bold">-</span> v(i, j))<span style="color:#04a5e5;font-weight:bold">**</span><span style="color:#fe640b">2</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">enddo</span>
-</span></span><span style="display:flex;"><span>    l2_norm <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">sqrt</span>(l2_norm)</span></span></code></pre></div>
-<p>In the past I&rsquo;ve noticed that despite their built-in status, intrinsic functions are not always optimized to the degree you thought they would be. Hager and Wellein summarize this nicely when they say</p>
-<blockquote>
-<p>It must be understood that compilers can be surprisingly smart and stupid at the same time.
-A common statement in discussions about compiler capabilities is &ldquo;The compiler be able to figure that out.&rdquo;
-This is often enough a false assumtion.</p>
-</blockquote>
-<p>At this point I must say that writing an accurate <code>norm2</code> function without undue underflows or overflows is surprisingly hard work.
-I won&rsquo;t go into details about the different algorithms, you can peruse the links in the reference section below if you want to.</p>
-<p>Instead, we&rsquo;ll be looking at the performance of the &ldquo;simple loop&rdquo; algorithm, expressed using different language constructs. For simplicity we&rsquo;ll look at the two-norm of an array of size 2000^2 (roughly 30.5 MB) filled with random values.</p>
-<p>Before we start looking at different Fortran implementations, let&rsquo;s select some performance baselines.
-Besides the <code>norm2</code> intrinsic function introduces in Fortran 2008, we can also measure the <code>DNRM2</code> functions that are provided in different BLAS libraries.
-For more variety I&rsquo;ve also prepared a 2-norm function using the Eigen C++ library:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#include</span> <span style="color:#9ca0b0;font-weight:bold;font-style:italic">&lt;Eigen/Dense&gt;</span><span style="color:#9ca0b0;font-style:italic">
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>
-</span></span><span style="display:flex;"><span><span style="color:#8839ef">extern</span> <span style="color:#40a02b">&#34;C&#34;</span> <span style="color:#d20f39">double</span> norm2_eigen(<span style="color:#d20f39">int</span> n, <span style="color:#8839ef">const</span> <span style="color:#d20f39">double</span> <span style="color:#04a5e5;font-weight:bold">*</span>x)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>	assert(n <span style="color:#04a5e5;font-weight:bold">&gt;=</span> <span style="color:#fe640b">0</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">if</span> (n <span style="color:#04a5e5;font-weight:bold">==</span> <span style="color:#fe640b">0</span> <span style="color:#04a5e5;font-weight:bold">||</span> x <span style="color:#04a5e5;font-weight:bold">==</span> <span style="color:#8839ef">nullptr</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#8839ef">return</span> <span style="color:#fe640b">0.0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    Eigen<span style="color:#04a5e5;font-weight:bold">::</span>Map<span style="color:#04a5e5;font-weight:bold">&lt;</span><span style="color:#8839ef">const</span> Eigen<span style="color:#04a5e5;font-weight:bold">::</span>VectorXd<span style="color:#04a5e5;font-weight:bold">&gt;</span> v(x, n);
-</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">return</span> v.norm();
-</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
-<p>For the tests below I&rsquo;ll be using an Apple M2 Pro CPU.
-I&rsquo;m using gfortran 15.2 as my main Fortran compiler and the preinstalled Apple clang 17 compiler for C++.</p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Ivan Pribec</title><link>https://ivan-pi.github.io/</link><description>Recent content on Ivan Pribec</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright><lastBuildDate>Sat, 18 Jul 2026 00:00:00 +0200</lastBuildDate><atom:link href="https://ivan-pi.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Sizing RBF-FD Stencils for Modern CPU Caches</title><link>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</link><pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate><guid>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</guid><description>&lt;p&gt;One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
+The number of monomials terms in the augmented polynomial basis is given by the &lt;a href="https://en.wikipedia.org/wiki/Triangular_number"&gt;triangular numbers&lt;/a&gt; in 2-d and the &lt;a href="https://en.wikipedia.org/wiki/Tetrahedral_number"&gt;tetrahedral numbers&lt;/a&gt; in 3-d.
+The number of terms can also be read from Pascal&amp;rsquo;s triangle/pyramid.&lt;/p&gt;
+&lt;p&gt;For the RBF stencil size a common heuristic is to use twice the number of polynomials terms.
+This heuristic originates from the work of Grady Wright.
+While this rule of thumb is a standard starting point for stencil sizing, the relationship between accuracy, computational time, and monomial augmentation remains an active area of research.
+Readers can find more information in the analysis by &lt;a href="https://doi.org/10.1007/s10915-020-01401-y"&gt;Jančič, Slak, and Kosec (2021)&lt;/a&gt; and citing works.&lt;/p&gt;</description><content:encoded><![CDATA[<p>One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
+The number of monomials terms in the augmented polynomial basis is given by the <a href="https://en.wikipedia.org/wiki/Triangular_number">triangular numbers</a> in 2-d and the <a href="https://en.wikipedia.org/wiki/Tetrahedral_number">tetrahedral numbers</a> in 3-d.
+The number of terms can also be read from Pascal&rsquo;s triangle/pyramid.</p>
+<p>For the RBF stencil size a common heuristic is to use twice the number of polynomials terms.
+This heuristic originates from the work of Grady Wright.
+While this rule of thumb is a standard starting point for stencil sizing, the relationship between accuracy, computational time, and monomial augmentation remains an active area of research.
+Readers can find more information in the analysis by <a href="https://doi.org/10.1007/s10915-020-01401-y">Jančič, Slak, and Kosec (2021)</a> and citing works.</p>
+<p>The tables below show how the RBF-FD matrix dimensions varies for 2-D and 3-D RBF-FD approximation.
+We also include the storage size of the matrices for 32- and 64-bit floats.</p>
+<p><strong>2-D RBF-FD approximation</strong></p>
 <table>
   <thead>
       <tr>
-          <th>Library</th>
-          <th>Elapsed (ms)</th>
-          <th>Bandwidth (GB/s)</th>
-          <th>Different bits</th>
+          <th>Poly order</th>
+          <th>Number of monomials</th>
+          <th>Matrix size (RBF + poly)</th>
+          <th>Storage - fp32 (KB)</th>
+          <th>Storage - fp64 (KB)</th>
       </tr>
   </thead>
   <tbody>
       <tr>
-          <td><code>norm2</code></td>
-          <td>4.9</td>
-          <td>6.1</td>
-          <td>5</td>
-      </tr>
-      <tr>
-          <td><code>norm2_eigen</code></td>
-          <td>0.89</td>
-          <td>33.1</td>
-          <td>2</td>
-      </tr>
-      <tr>
-          <td>Apple Accelerate</td>
-          <td>1.2</td>
-          <td>22.5</td>
-          <td>2</td>
-      </tr>
-      <tr>
-          <td>OpenBLAS</td>
-          <td>4.9</td>
-          <td>6.0</td>
-          <td>4</td>
-      </tr>
-      <tr>
-          <td>ArmPL</td>
-          <td>2.4</td>
-          <td>12.2</td>
+          <td>1</td>
+          <td>1</td>
           <td>3</td>
+          <td>0.035</td>
+          <td>0.070</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td>3</td>
+          <td>9</td>
+          <td>0.316</td>
+          <td>0.633</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td>6</td>
+          <td>18</td>
+          <td>1.266</td>
+          <td>2.531</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td>10</td>
+          <td>30</td>
+          <td>3.516</td>
+          <td>7.031</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td>15</td>
+          <td>45</td>
+          <td>7.910</td>
+          <td>15.820</td>
+      </tr>
+      <tr>
+          <td>6</td>
+          <td>21</td>
+          <td>63</td>
+          <td>15.504</td>
+          <td>31.008</td>
+      </tr>
+      <tr>
+          <td>7</td>
+          <td>28</td>
+          <td>84</td>
+          <td>27.563</td>
+          <td>55.125</td>
+      </tr>
+      <tr>
+          <td>8</td>
+          <td>36</td>
+          <td>108</td>
+          <td>45.563</td>
+          <td>91.125</td>
+      </tr>
+      <tr>
+          <td>9</td>
+          <td>45</td>
+          <td>135</td>
+          <td>71.191</td>
+          <td>142.383</td>
+      </tr>
+      <tr>
+          <td>10</td>
+          <td>55</td>
+          <td>165</td>
+          <td>106.348</td>
+          <td>212.695</td>
       </tr>
   </tbody>
 </table>
-<p>As we can see from the table above, there is quite a spread in the results.
-This might be due to the use of different algorithms, but also due to quality of the generated code.
-The use of different algorithms, or as it may be simply, different order of evaluation,
-can be inferred from the number of different bits compared to a value computed using quadruple precision:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">integer</span>, <span style="color:#8839ef">parameter</span> <span style="color:#d20f39">::</span> qp <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">selected_real_kind</span>(<span style="color:#fe640b">32</span>)
-</span></span><span style="display:flex;"><span><span style="color:#8839ef">real</span>(dp) <span style="color:#d20f39">::</span> r0
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>r0 <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">norm2</span>(<span style="color:#8839ef">real</span>(u,<span style="color:#04a5e5">kind</span><span style="color:#04a5e5;font-weight:bold">=</span>qp))</span></span></code></pre></div>
-<p>Note that the Fortran standard only requires <code>norm2</code> to return a <em>processor-dependent</em>
-approximation of the 2-norm. (In Fortran jargon, processor is the name of the compiler or interpreter.)</p>
-<p>What to make of these results? Is this the top performance which can be reached?
-Assuming the naive simple loop algorithm,</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">do</span> i <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>, n
-</span></span><span style="display:flex;"><span>	nrm <span style="color:#04a5e5;font-weight:bold">=</span> nrm <span style="color:#04a5e5;font-weight:bold">+</span> u(i)<span style="color:#04a5e5;font-weight:bold">**</span><span style="color:#fe640b">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span> <span style="color:#8839ef">do</span>
-</span></span><span style="display:flex;"><span>nrm <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">sqrt</span>(nrm)</span></span></code></pre></div>
-<p>this operation tends to be memory intensive.
-For each new element loaded we perform two operations (one addition and one multiplication).
-Assuming 64-bit doubles, this gives a code balance of 4 bytes / flop.</p>
-<h2 id="unrolling-and-wide">Unrolling and wide</h2>
-<p class="notice">
-  <em>Comment:</em> one downside of <code>DNRM2</code> is it assumed the input is a contiguous 1-d vector.
-This means if want to only calculate the two-norm over the interior region the compiler will probably perform copy-in/copy-out.
-</p>
-
-<p>Maybe you know the phrase: &ldquo;Never look a gift hourse in the mouth&rdquo;.
-At the end of the day, we should all be grateful to have awesome compilers like gfortran and flang.</p>
-<p>Since compilers evolve over time, remember to take these results with a grain of salt.
-Maybe the compiler of the future you are using has already solved some of these issues, at least I strongly wish so.</p>
-<h2 id="references">References</h2>
-<ul>
-<li><a href="https://doi.org/10.1145/355769.355771">Blue, J. L. (1978). A portable Fortran program to find the Euclidean norm of a vector. ACM Transactions on Mathematical Software (TOMS), 4(1), 15-23.</a></li>
-<li><a href="https://doi.org/10.1145/3134441">Hanson, R. J., &amp; Hopkins, T. (2017). Remark on algorithm 539: A modern Fortran reference implementation for carefully computing the Euclidean norm. ACM Transactions on Mathematical Software (TOMS), 44(3), 1-23.</a></li>
-<li><a href="https://doi.org/10.1145/3061665">Anderson, E. (2017). Algorithm 978: Safe scaling in the level 1 BLAS. ACM Transactions on Mathematical Software (TOMS), 44(1), 1-28.</a></li>
-</ul>
-<p>There are also newer works investigating the use of double-word arithmetic:</p>
-<ul>
-<li><a href="https://doi.org/10.1007/978-3-030-86653-2_7">Harayama, T., Kudo, S., Mukunoki, D., Imamura, T., &amp; Takahashi, D. (2021, September). A Rapid Euclidean Norm Calculation Algorithm that Reduces Overflow and Underflow. In International Conference on Computational Science and Its Applications (pp. 95-110). Cham: Springer International Publishing.</a></li>
-<li><a href="https://doi.org/10.1145/3568672">Lefèvre, V., Louvet, N., Muller, J. M., Picot, J., &amp; Rideau, L. (2023). Accurate calculation of Euclidean norms using double-word arithmetic. ACM Transactions on Mathematical Software, 49(1), 1-34.</a></li>
-</ul>
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Is the Humble For-Loop a Good Way to Search an Array?</title>
-      <link>//localhost:1313/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</link>
-      <pubDate>Sat, 22 Nov 2025 00:00:00 +0100</pubDate>
-      <guid>//localhost:1313/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</guid>
-      <description>&lt;p&gt;While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:&lt;/p&gt;
-&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;C devs will tell you this is peak API and Programming Languages design,&lt;br&gt;&lt;br&gt;And nothing better has been invented since 1972. &lt;a href=&#34;https://t.co/mqELKMVEOb&#34;&gt;pic.twitter.com/mqELKMVEOb&lt;/a&gt;&lt;/p&gt;&amp;mdash; Dmitrii Kovanikov (@ChShersh) &lt;a href=&#34;https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw&#34;&gt;November 20, 2025&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
+<p><strong>3-D RBF-FD approximation</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Poly order</th>
+          <th>Number of monomials</th>
+          <th>Matrix size (RBF + poly)</th>
+          <th>Storage - fp32 (KB)</th>
+          <th>Storage - fp64 (KB)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td>1</td>
+          <td>3</td>
+          <td>0.035</td>
+          <td>0.070</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td>4</td>
+          <td>12</td>
+          <td>0.563</td>
+          <td>1.125</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td>10</td>
+          <td>30</td>
+          <td>3.516</td>
+          <td>7.031</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td>20</td>
+          <td>60</td>
+          <td>14.063</td>
+          <td>28.125</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td>35</td>
+          <td>105</td>
+          <td>43.066</td>
+          <td>86.133</td>
+      </tr>
+      <tr>
+          <td>6</td>
+          <td>56</td>
+          <td>168</td>
+          <td>110.250</td>
+          <td>220.500</td>
+      </tr>
+      <tr>
+          <td>7</td>
+          <td>84</td>
+          <td>252</td>
+          <td>248.063</td>
+          <td>496.125</td>
+      </tr>
+      <tr>
+          <td>8</td>
+          <td>120</td>
+          <td>360</td>
+          <td>506.250</td>
+          <td>1012.500</td>
+      </tr>
+      <tr>
+          <td>9</td>
+          <td>165</td>
+          <td>495</td>
+          <td>957.129</td>
+          <td>1914.258</td>
+      </tr>
+      <tr>
+          <td>10</td>
+          <td>220</td>
+          <td>660</td>
+          <td>1701.563</td>
+          <td>3403.125</td>
+      </tr>
+  </tbody>
+</table>
+<p>When computing the RBF-FD approximation weights via LU factorization or other forms of factorization (i.e. block Cholesky) the matrix will reside in the L1 or L2 cache.
+The maximum matrix size that fits in cache also depends on the number of right-hand sides (operators) being solved simultaneously, as those vectors must also share the cache.</p>
+<p>Here are the L1 data cache sizes of a few recent CPU architectures:</p>
+<table>
+  <thead>
+      <tr>
+          <th>CPU</th>
+          <th>L1D Cache Size (KB)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Apple M-series (P-core)</td>
+          <td>128</td>
+      </tr>
+      <tr>
+          <td>Nvidia Grace</td>
+          <td>64</td>
+      </tr>
+      <tr>
+          <td>Fujitsu A64FX</td>
+          <td>64</td>
+      </tr>
+      <tr>
+          <td>Intel Granite Rapids</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>Intel Sapphire Rapids</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>Intel Core 13th/14th Gen</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>Intel Core 11th Gen</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>AMD Zen 5</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>AMD Zen 4</td>
+          <td>32</td>
+      </tr>
+  </tbody>
+</table>
+<p>For polynomials below order 7 in 2D (or 5 in 3D) the RBF-FD matrices fit comfortably in the lowest cache level.
+The Apple M-series and recent ARM servers like the Nvidia Grace or Fujitsu A64FX have a slight advantage due to the larger L1 cache sizes.
+Intel and AMD CPUs used 32 KB L1 data caches for more than a decade.
+AMD increased the size only recently with the Zen 5 series launched in 2024.
+Intel made the upgrade from 32 KB to 48 KB in the Sunny Cove architecture launched in 2019.</p>
+<p>(Note: Apples&rsquo;s efficiency cores (E-cores) use smaller 64 kB L1D caches.
+Intel&rsquo;s efficiency cores have remained at 32 kB L1 data caches. )</p>
+]]></content:encoded></item><item><title>Is the Humble For-Loop a Good Way to Search an Array?</title><link>https://ivan-pi.github.io/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</link><pubDate>Sat, 22 Nov 2025 00:00:00 +0100</pubDate><guid>https://ivan-pi.github.io/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</guid><description>&lt;p&gt;While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:&lt;/p&gt;
+&lt;blockquote class="twitter-tweet"&gt;&lt;p lang="en" dir="ltr"&gt;C devs will tell you this is peak API and Programming Languages design,&lt;br&gt;&lt;br&gt;And nothing better has been invented since 1972. &lt;a href="https://t.co/mqELKMVEOb"&gt;pic.twitter.com/mqELKMVEOb&lt;/a&gt;&lt;/p&gt;&amp;mdash; Dmitrii Kovanikov (@ChShersh) &lt;a href="https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw"&gt;November 20, 2025&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src="https://platform.twitter.com/widgets.js" charset="utf-8"&gt;&lt;/script&gt;
 &lt;p&gt;This got me wondering: how fast &lt;em&gt;are&lt;/em&gt; &amp;ldquo;modern&amp;rdquo; alternatives?&lt;/p&gt;
-&lt;h2 id=&#34;searching-for-an-element-in-c&#34;&gt;Searching for an element in C++&lt;/h2&gt;
+&lt;h2 id="searching-for-an-element-in-c"&gt;Searching for an element in C++&lt;/h2&gt;
 &lt;p&gt;One of the C++ proponents in the thread suggested the following &amp;ldquo;ultra-modern&amp;rdquo; solution using
-C++23 &lt;a href=&#34;https://en.cppreference.com/w/cpp/ranges/enumerate_view.html&#34;&gt;&lt;code&gt;std::views::enumerate&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:</p>
+C++23 &lt;a href="https://en.cppreference.com/w/cpp/ranges/enumerate_view.html"&gt;&lt;code&gt;std::views::enumerate&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;</description><content:encoded><![CDATA[<p>While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:</p>
 <blockquote class="twitter-tweet"><p lang="en" dir="ltr">C devs will tell you this is peak API and Programming Languages design,<br><br>And nothing better has been invented since 1972. <a href="https://t.co/mqELKMVEOb">pic.twitter.com/mqELKMVEOb</a></p>&mdash; Dmitrii Kovanikov (@ChShersh) <a href="https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw">November 20, 2025</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <p>This got me wondering: how fast <em>are</em> &ldquo;modern&rdquo; alternatives?</p>
 <h2 id="searching-for-an-element-in-c">Searching for an element in C++</h2>
@@ -709,55 +774,41 @@ cmake .. \
 </span></span><span style="display:flex;"><span>BM_find_int_iter/32768          4851 ns         4850 ns       142512 bytes_per_second=25.1686Gi/s
 </span></span><span style="display:flex;"><span>BM_find_int_rbfor/32768         4834 ns         4832 ns       144733 bytes_per_second=25.2625Gi/s
 </span></span><span style="display:flex;"><span>BM_find_int_range/32768         5175 ns         5010 ns       100000 bytes_per_second=24.3661Gi/s</span></span></code></pre></div>
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Evaluating the closed form coefficients of Laguerre polynomials</title>
-      <link>//localhost:1313/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link>
-      <pubDate>Wed, 29 Dec 2021 00:00:00 +0100</pubDate>
-      <guid>//localhost:1313/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid>
-      <description>&lt;h1 id=&#34;evaluating-the-closed-form-coefficients-of-laguerre-polynomials&#34;&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;
+]]></content:encoded></item><item><title>Evaluating the closed form coefficients of Laguerre polynomials</title><link>https://ivan-pi.github.io/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link><pubDate>Wed, 29 Dec 2021 00:00:00 +0100</pubDate><guid>https://ivan-pi.github.io/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid><description>&lt;h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials"&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;
 &lt;p&gt;For some numerical applications it can be useful to work with the closed form
 expression for Laguerre polynomials. The closed form is given by&lt;/p&gt;
-
-&lt;table style=&#34;width: 100%&#34;&gt;
-&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
-&lt;td&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;
-&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(1)&lt;/td&gt;
+&lt;table style="width: 100%; border: none; margin: 1rem 0;"&gt;
+&lt;tbody style="border: none;"&gt;
+&lt;tr style="background: none; border: none;"&gt;
+&lt;td style="border: none; padding: 0; width: 2.5rem;"&gt;&lt;/td&gt;
+&lt;td style="border: none; padding: 0; text-align: center;"&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;
+&lt;td style="border: none; padding: 0; width: 2.5rem; text-align: right;"&gt;(1)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
 &lt;/table&gt;
-
-
-&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;
-
-&lt;table style=&#34;width: 100%&#34;&gt;
-&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
-&lt;td&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;
-&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(2)&lt;/td&gt;
-&lt;/table&gt;
-
-
-&lt;p&gt;Since $n$ and $k$ are both integers, the coefficients are rational numbers.
-For most computational applications we will likely only need to work with
-floating point approximations of the coefficients.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials">Evaluating the closed form coefficients of Laguerre polynomials</h1>
+&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;</description><content:encoded><![CDATA[<h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials">Evaluating the closed form coefficients of Laguerre polynomials</h1>
 <p>For some numerical applications it can be useful to work with the closed form
 expression for Laguerre polynomials. The closed form is given by</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$</td>
-<td style="width: 10000px; text-align: right;">(1)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(1)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>We can evaluate the coefficients with the help of the factorial formula</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
-<td style="width: 10000px; text-align: right;">(2)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(2)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>Since $n$ and $k$ are both integers, the coefficients are rational numbers.
 For most computational applications we will likely only need to work with
@@ -766,13 +817,15 @@ floating point approximations of the coefficients.</p>
 be careful to avoid overflow. For example if we try to compute $$n!$$ using default Fortran integers (32-bit), it will only be possible to calculate coefficients for $n \leq 12$.</p>
 <p>To avoid such issues we can calculate the coefficients using the
 the gamma function $\Gamma$ and the logarithm thereof. This follows from the helpful observation that for integer arguments</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$\Gamma(n&#43;1) = n!$$</td>
-<td style="width: 10000px; text-align: right;">(3)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\Gamma(n&#43;1) = n!$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(3)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>For the coefficients of $L_n(x)$, a straightforward Fortran implementation might look as follows:</p>
 
@@ -799,37 +852,33 @@ The coefficients returned by the procedure are given in <em>ascending</em> order
 powers of $x$.</p>
 <p>A similar procedure can be written for the derivative of the Laguerre polynomial.
 These are given be the expression</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$L&#39;_n(x) = \sum_{k=0}^n \binom{n}{k}\frac{(-1)^k}{k!} k x^{k-1}$$</td>
-<td style="width: 10000px; text-align: right;">(4)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$L&#39;_n(x) = \sum_{k=0}^n \binom{n}{k}\frac{(-1)^k}{k!} k x^{k-1}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(4)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>Here we should emphasize that the $i$-th derivative of a Laguerre polynomial
 is polynomial of order ${n - i}$ (a polynomial of order $n$
 is described by $n+1$ coefficients).</p>
 <p>The implementation can also be adapted easily to return the coefficients of
 the generalized Laguerre polynomials with the following closed form expression</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$L_n^{(\alpha)}(x) = \sum_{k=0}^n (-1)^k \binom{n &#43; \alpha}{ n - k} \frac{x^k}{k!}$$</td>
-<td style="width: 10000px; text-align: right;">(5)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$L_n^{(\alpha)}(x) = \sum_{k=0}^n (-1)^k \binom{n &#43; \alpha}{ n - k} \frac{x^k}{k!}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(5)</td>
+    </tr>
+  </tbody>
 </table>
 
-
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Setting up a personal website using Hugo</title>
-      <link>//localhost:1313/posts/2020/02/setting-up-a-personal-website-using-hugo/</link>
-      <pubDate>Sat, 15 Feb 2020 00:00:00 +0100</pubDate>
-      <guid>//localhost:1313/posts/2020/02/setting-up-a-personal-website-using-hugo/</guid>
-      <description>&lt;p&gt;As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).&lt;/p&gt;
-&lt;p&gt;Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>As many before me, I&rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&rsquo;m saving some of these for blog posts).</p>
+]]></content:encoded></item><item><title>Setting up a personal website using Hugo</title><link>https://ivan-pi.github.io/posts/2020/02/setting-up-a-personal-website-using-hugo/</link><pubDate>Sat, 15 Feb 2020 00:00:00 +0100</pubDate><guid>https://ivan-pi.github.io/posts/2020/02/setting-up-a-personal-website-using-hugo/</guid><description>&lt;p&gt;As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).&lt;/p&gt;
+&lt;p&gt;Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).&lt;/p&gt;</description><content:encoded><![CDATA[<p>As many before me, I&rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&rsquo;m saving some of these for blog posts).</p>
 <p>Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).</p>
 <p>Since this post is aimed mostly towards myself, I might come back and add further instructions as I move along.</p>
 <h2 id="installing-hugo">Installing Hugo</h2>
@@ -905,13 +954,15 @@ katex: &#34;true&#34;</code></pre>
 <pre tabindex="0"><code>{{&lt; neq 1 &#34;E=mc^2&#34;  &gt;}}</code></pre>
 <p>where the first argument is the displayed equation number, and the second argument is a valid KaTeX formula (enclosed between quotation marks).</p>
 <p>Sample output:</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$E=mc^2$$</td>
-<td style="width: 10000px; text-align: right;">(1)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$E=mc^2$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(1)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>At the moment referencing must be performed manually. If you find of a better solution for equation numbering, please let me know.</p>
 <p>Related:</p>
@@ -919,93 +970,7 @@ katex: &#34;true&#34;</code></pre>
 <li><a href="https://jsfiddle.net/p9du5Lgq/5/?utm_source=website&amp;utm_medium=embed&amp;utm_campaign=p9du5Lgq">KaTeX \tag hack</a></li>
 <li><a href="https://github.com/KaTeX/KaTeX/issues/350">Equation numbering (KaTeX issue)</a></li>
 </ul>
-]]></content:encoded>
-    </item>
-    <item>
-      <title></title>
-      <link>//localhost:1313/posts/1/01/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>//localhost:1313/posts/1/01/</guid>
-      <description>&lt;h1 id=&#34;wrapping-openmp-timing-functions&#34;&gt;Wrapping OpenMP timing functions&lt;/h1&gt;
-&lt;p&gt;Often-times when writing an OpenMP program, I&amp;rsquo;d like to time sections of the program to analyze the parallel speed-up.
-This requires measuring both the sequential performance (without OpenMP) versus the parallel performance.&lt;/p&gt;
-&lt;p&gt;OpenMP is designed to be used in way, such that the same program can be a valid OpenMP and non-OpenMP program.
-This is mainly achieved using directives.
-In some circumstances it is necessary to call OpenMP runtime functions, and in those situations it is helpful to use the conditional compilation features.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<h1 id="wrapping-openmp-timing-functions">Wrapping OpenMP timing functions</h1>
-<p>Often-times when writing an OpenMP program, I&rsquo;d like to time sections of the program to analyze the parallel speed-up.
-This requires measuring both the sequential performance (without OpenMP) versus the parallel performance.</p>
-<p>OpenMP is designed to be used in way, such that the same program can be a valid OpenMP and non-OpenMP program.
-This is mainly achieved using directives.
-In some circumstances it is necessary to call OpenMP runtime functions, and in those situations it is helpful to use the conditional compilation features.</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span>   nthreads <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#d20f39">!$</span> nthreads <span style="color:#04a5e5;font-weight:bold">=</span> omp_get_num_threads()</span></span></code></pre></div>
-<p>As a side-note; if you plan to use OpenMP, use three elements for spacing.</p>
-<p>It is also possible to the use the full preprocessor syntax, even if non-standard in Fortran.
-Most compilers define a preprocessor anyways.
-You can use it like this:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#if defined(_OPENMP)
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>	nthreads <span style="color:#04a5e5;font-weight:bold">=</span> omp_get_num_threads()
-</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#else
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>	nthreads <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#d20f39">#</span><span style="color:#8839ef">endif</span></span></span></code></pre></div>
-<p>Normally I will use the conditional compilation syntax, just because it is easier to read.
-When optimizations are turned on, the compiler dead-code elimination pass should eliminate any redudant statements.</p>
-<p>However this doesn&rsquo;t work always.
-Take the following function:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">double precision</span> <span style="color:#8839ef">function</span> walltime()
-</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">!$ use omp_lib, only: omp_get_wtime
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>
-</span></span><span style="display:flex;"><span>   <span style="color:#8839ef">call</span> <span style="color:#04a5e5">cpu_time</span>(walltime)
-</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">!$ walltime = omp_get_wtime()
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>
-</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span> <span style="color:#8839ef">function</span></span></span></code></pre></div>
-<p>The desired effect would be to call the OpenMP timing function only when OpenMP is turned on.
-By inspecting the assembly, we can easily determine, this is not the case.
-The compiler preserves both function calls.</p>
-<p>A possible explanation for this is that the <code>cpu_time</code> function is impure; i.e. it involves the reading of some global register.
-As a result, the compiler is not free to eliminate this call.</p>
-<p>The only viable workaround is to use conditional compilation:</p>
-
-
-
-
-
-
-<pre tabindex="0"><code>double precision function walltime()
-#if defined(_OPENMP)
-   use omp_lib, only: omp_get_wtime
-   walltime = omp_get_wtime()
-#else
-   call cpu_time(walltime)
-#endif
-end function</code></pre>
-]]></content:encoded>
-    </item>
-    <item>
-      <title></title>
-      <link>//localhost:1313/posts/1/01/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>//localhost:1313/posts/1/01/</guid>
-      <description>&lt;h1 id=&#34;is-fortran-all-we-need-for-performance&#34;&gt;Is Fortran all we need for performance?&lt;/h1&gt;
+]]></content:encoded></item><item><title/><link>https://ivan-pi.github.io/posts/1/01/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/posts/1/01/</guid><description>&lt;h1 id="is-fortran-all-we-need-for-performance"&gt;Is Fortran all we need for performance?&lt;/h1&gt;
 &lt;p&gt;There are many myths out in the wild:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;you just need C++&lt;/li&gt;
@@ -1016,8 +981,7 @@ end function</code></pre>
 &lt;p&gt;Design an API which encapsulates the operations you need.
 If performance is not good enough, seek to implement them by other means.&lt;/p&gt;
 &lt;p&gt;In practice we see that array reductions hardly reach the peak.&lt;/p&gt;
-&lt;p&gt;Even a memory copy won&amp;rsquo;t use nontemporal stores unless instructed too.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<h1 id="is-fortran-all-we-need-for-performance">Is Fortran all we need for performance?</h1>
+&lt;p&gt;Even a memory copy won&amp;rsquo;t use nontemporal stores unless instructed too.&lt;/p&gt;</description><content:encoded><![CDATA[<h1 id="is-fortran-all-we-need-for-performance">Is Fortran all we need for performance?</h1>
 <p>There are many myths out in the wild:</p>
 <ul>
 <li>you just need C++</li>
@@ -1029,39 +993,23 @@ If performance is not good enough, seek to implement them by other means.&lt;/p&
 If performance is not good enough, seek to implement them by other means.</p>
 <p>In practice we see that array reductions hardly reach the peak.</p>
 <p>Even a memory copy won&rsquo;t use nontemporal stores unless instructed too.</p>
-]]></content:encoded>
-    </item>
-    <item>
-      <title></title>
-      <link>//localhost:1313/posts/1/01/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>//localhost:1313/posts/1/01/</guid>
-      <description>&lt;p&gt;SIMD Libraries&lt;/p&gt;
+]]></content:encoded></item><item><title/><link>https://ivan-pi.github.io/posts/1/01/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/posts/1/01/</guid><description>&lt;p&gt;SIMD Libraries&lt;/p&gt;
 &lt;p&gt;Generic SIMD
-&lt;a href=&#34;https://github.com/genericsimd/generic_simd/&#34;&gt;https://github.com/genericsimd/generic_simd/&lt;/a&gt;
-&lt;a href=&#34;https://doi.org/10.1145/2568058.2568059&#34;&gt;https://doi.org/10.1145/2568058.2568059&lt;/a&gt;&lt;/p&gt;
+&lt;a href="https://github.com/genericsimd/generic_simd/"&gt;https://github.com/genericsimd/generic_simd/&lt;/a&gt;
+&lt;a href="https://doi.org/10.1145/2568058.2568059"&gt;https://doi.org/10.1145/2568058.2568059&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Google Highway
-&lt;a href=&#34;https://google.github.io/highway/en/master/&#34;&gt;https://google.github.io/highway/en/master/&lt;/a&gt;
-&lt;a href=&#34;https://github.com/google/highway&#34;&gt;https://github.com/google/highway&lt;/a&gt;&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>SIMD Libraries</p>
+&lt;a href="https://google.github.io/highway/en/master/"&gt;https://google.github.io/highway/en/master/&lt;/a&gt;
+&lt;a href="https://github.com/google/highway"&gt;https://github.com/google/highway&lt;/a&gt;&lt;/p&gt;</description><content:encoded><![CDATA[<p>SIMD Libraries</p>
 <p>Generic SIMD
 <a href="https://github.com/genericsimd/generic_simd/">https://github.com/genericsimd/generic_simd/</a>
 <a href="https://doi.org/10.1145/2568058.2568059">https://doi.org/10.1145/2568058.2568059</a></p>
 <p>Google Highway
 <a href="https://google.github.io/highway/en/master/">https://google.github.io/highway/en/master/</a>
 <a href="https://github.com/google/highway">https://github.com/google/highway</a></p>
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Code development</title>
-      <link>//localhost:1313/code/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>//localhost:1313/code/</guid>
-      <description>&lt;p&gt;In my free time I like to work on scientific coding projects in Fortran.&lt;/p&gt;
-&lt;h2 id=&#34;fortran-interfaces&#34;&gt;Fortran interfaces&lt;/h2&gt;
+]]></content:encoded></item><item><title>Code development</title><link>https://ivan-pi.github.io/code/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/code/</guid><description>&lt;p&gt;In my free time I like to work on scientific coding projects in Fortran.&lt;/p&gt;
+&lt;h2 id="fortran-interfaces"&gt;Fortran interfaces&lt;/h2&gt;
 &lt;p&gt;Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic &lt;code&gt;iso_c_binding&lt;/code&gt; module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C++ and vice versa.&lt;/p&gt;
-&lt;p&gt;Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>In my free time I like to work on scientific coding projects in Fortran.</p>
+&lt;p&gt;Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:&lt;/p&gt;</description><content:encoded><![CDATA[<p>In my free time I like to work on scientific coding projects in Fortran.</p>
 <h2 id="fortran-interfaces">Fortran interfaces</h2>
 <p>Fortran 2003 added features for interoperability with the C programming language. These can be accesed through the intrinsic <code>iso_c_binding</code> module and allow smooth interfacing between the two languages for a certain set of interoperable types. This way Fortran programmers can gain access to the numerous libraries written in C/C++ and vice versa.</p>
 <p>Using the C-Fortran interoperability I have written Fortran interfaces for the following (scientific) software libraries:</p>
@@ -1078,47 +1026,294 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <li><a href="https://github.com/ivan-pi/stroud_quad">Quadrature routines from Stroud &amp; Secrest</a> - An updated version of the routines from the book <em>Gaussian quadrature formulas</em> by A. H. Stroud and D. Secrest published in 1966. Includes routines for generatics the knots and weights of the classic Jacobi, Laguerre, and Hermite quadratures.</li>
 <li><a href="https://github.com/ivan-pi/fortran_lsp">Least squares solvers from Lawson &amp; Hanson</a> - This package contains the routines from the book <em>Solving least squares problems</em> by Lawson and Hanson (1995). Most of the routines date back to the 1974 version of the book and were developed for use at the NASA Jet Propulsion Laboratory in California, Pasadena. I have tried to modernize the interfaces of most of the subroutines. The non-negative least squares solver <code>nnls</code> appears also in <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.nnls.html"><code>scipy.optimize.nnls</code></a>.</li>
 </ul>
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Diary</title>
-      <link>//localhost:1313/diary/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>//localhost:1313/diary/</guid>
-      <description>&lt;p&gt;A chronological collection of things I&amp;rsquo;ve found interesting.&lt;/p&gt;
-&lt;h2 id=&#34;2025-11-26&#34;&gt;2025-11-26&lt;/h2&gt;
+]]></content:encoded></item><item><title>Diary</title><link>https://ivan-pi.github.io/diary/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/diary/</guid><description>&lt;p&gt;A chronological collection of things I&amp;rsquo;ve found interesting.&lt;/p&gt;
+&lt;h2 id="2026-05-28"&gt;2026-05-28&lt;/h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.eecs.harvard.edu/~htk/publication/1982-kung-why-systolic-architecture.pdf&#34;&gt;Why Systolic Architectures?&lt;/a&gt; (PDF, 2.4 MB)&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://flang.llvm.org/docs/index.html&#34;&gt;Flang Documentation&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://blogs.fau.de/hager/files/2013/11/sc13_tutorial_134.pdf&#34;&gt;The Practitioner&amp;rsquo;s Cookbook for Good Parallel Performance on Multi- and Many-Core Systems | RRZE&lt;/a&gt; (PDF, 7.1 MB)&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://commit.csail.mit.edu/papers/2025/Jonathan_Zhou_SB_Thesis.pdf&#34;&gt;Performance Analysis of the Apple AMX Matrix Accelerator | Jonathan Zhou&lt;/a&gt; (PDF, 1777 KB)&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://lemire.me/blog/2023/03/21/counting-cycles-and-instructions-on-arm-based-apple-systems/&#34;&gt;Counting cycles and instructions on ARM-based Apple systems | Daniel Lemire&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/dougallj/applecpu?tab=readme-ov-file&#34;&gt;Apple Firestorm/Icestorm CPU microarchitecture docs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://eclecticlight.co/2023/12/13/finding-and-evaluating-amx-co-processors-in-apple-silicon-chips/&#34;&gt;Finding and evaluating AMX co-processors in Apple silicon chips&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://arxiv.org/abs/2502.05317&#34;&gt;Apple vs. Oranges: Evaluating the Apple Silicon M-Series SoCs for HPC Performance and Efficiency&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://dougallj.github.io/asil/index.html&#34;&gt;A64 SIMD Instruction List: SVE Instructions&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://scalable.uni-jena.de/opt/hpc/index.html&#34;&gt;High Performance Computing Class | FSU Jena&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://mcyoung.xyz/2023/11/27/simd-base64/&#34;&gt;Designing a SIMD Algorithm from Scratch | mcyoung&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.sigarch.org/architecture-systems-are-changing-the-architects-role-in-the-era-of-agentic-co-design/"&gt;Architecture &amp;amp; Systems are Changing: The Architect’s Role in the Era of Agentic Co-Design | Computer Architecture Today&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://developer.arm.com/community/arm-community-blogs/b/servers-and-cloud-computing-blog/posts/what-s-new-in-arm-performance-libraries-26-01"&gt;What&amp;rsquo;s new in Arm Performance Libraries 26.01 | Arm Developer Community&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://developer.arm.com/community/arm-community-blogs/b/servers-and-cloud-computing-blog/posts/perf-libs-sparse-on-arm"&gt;perf-libs-sparse: Introducing a new open-source project for sparse linear algebra on Arm | Arm Developer Community&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.phoronix.com/review/nvidia-vera-benchmarks"&gt;NVIDIA Vera CPU Benchmarks: Olympus Cores Delivering The Best Performance Ever Seen On ARM | Phoronix&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://epubs.stfc.ac.uk/manifestation/4395/RAL_TR_2009_019.pdf"&gt;Code Coverage Analysis for Fortran | Science and Technology Facilities Council Rutherford Appleton Laboratory&lt;/a&gt; (PDF)&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://davidoks.blog/p/why-japanese-companies-do-so-many"&gt;Why Japanese companies do so many different things | David Oks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://youtu.be/Fa_KqW7np14?si=yVGbeF7bZ__55GXP"&gt;Advancing Computational Science with High-Order Finite Elements | Supercomputing Spotlights&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://borretti.me/article/human-bottlenecks"&gt;Human Bottlenecks | Fernando Borretti&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.thonking.ai/p/strangely-matrix-multiplications"&gt;Strangely, Matrix Multiplications on GPUs Run Faster When Given &amp;ldquo;Predictable&amp;rdquo; Data! | Thonk From First Principles&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://pub.towardsai.net/cuda-tile-gpu-programming-model-1a4bc93ae9b4"&gt;NVIDIA Took 20 Years to Ship 25 Lines of Python | Delanoe Pirard, Medium&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://hyper.ai/en/news/47715"&gt;Can the Tile Paradigm Reshape the Competitive Landscape of the GPU Programming Ecosystem? | HyperAI&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h2 id=&#34;2025-11-20&#34;&gt;2025-11-20&lt;/h2&gt;
+&lt;h2 id="2026-05-22"&gt;2026-05-22&lt;/h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://dev.to/frosnerd/comparing-openblas-and-accelerate-on-apple-silicon-for-blas-routines-2pb9&#34;&gt;Comparing OpenBLAS and Accelerate on Apple Silicon for BLAS Routines | Frank Rosner&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://tylerseanrau.github.io/BenchAndTest/&#34;&gt;Benchmarking and Testing | Tyler Sean Rau&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.intel.com/content/www/us/en/developer/articles/technical/openmp-simd-for-inclusiveexclusive-scans.html&#34;&gt;OpenMP* SIMD for Inclusive/Exclusive Scans&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://blogs.fau.de/hager/files/2010/07/numet_hager_08.pdf&#34;&gt;Effiziente Nutzung von Hochleistungsrechnern in der numerischen Strömungsmechanik | Dr. Georg Hager&lt;/a&gt; (PDF, 599 KB)&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://dl.acm.org/doi/pdf/10.1145/29873.29875&#34;&gt;Automatic Translation of FORTRAN Programs to Vector Form | Randy Allen and Ken Kennedy&lt;/a&gt; (PDF, 2.8 MB)&lt;/li&gt;
-&lt;li&gt;Bik, A. J., Tian, X., &amp;amp; Girkar, M. B. (2006). Multimedia vectorization of floating‐point MIN/MAX reductions. Concurrency and Computation: Practice and Experience, 18(9), 997-1007. &lt;a href=&#34;https://doi.org/10.1002/cpe.1009&#34;&gt;https://doi.org/10.1002/cpe.1009&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://doku.lrz.de/files/11497000/11497017/8/1745835328413/3_Vectorization.pdf&#34;&gt;Vectorization Essentials | Intel Software&lt;/a&gt; (PDF, 1913 KB)&lt;/li&gt;
-&lt;li&gt;Karp, A. H., &amp;amp; Babb, R. B. (1988). A comparison of 12 parallel Fortran dialects. Ieee Software, 5(5), 52-67. &lt;a href=&#34;https://doi.org/10.1109/52.7943&#34;&gt;https://doi.org/10.1109/52.7943&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;Oraji, Y. M., Hück, A., &amp;amp; Bischof, C. (2025, November). Extending MPI Correctness Benchmarking to the Fortran Language. In Proceedings of the SC&#39;25 Workshops of the International Conference for High Performance Computing, Networking, Storage and Analysis (pp. 244-248). &lt;a href=&#34;https://doi.org/10.1145/3731599.3767366&#34;&gt;https://doi.org/10.1145/3731599.3767366&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.ixpug.org/images/docs/isc_2024/Investigating_the_perfomance_of_LLVM-based_IFX.pdf&#34;&gt;Investigating the performance of LLVM- based Intel Fortran Complier (ifx) | Dhani Ruhela&lt;/a&gt; (PDF, 596 KB)&lt;/li&gt;
-&lt;li&gt;Rouson, D., Dibba, B., Rasmussen, K., Richardson, B., Torres, D., Zhang, Y., &amp;hellip; &amp;amp; Shende, S. (2024). Just Write Fortran: Experiences with a Language-Based Alternative to MPI+ X. &lt;a href=&#34;https://doi.org/10.25344/S4H88D&#34;&gt;https://doi.org/10.25344/S4H88D&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=""&gt;Alan Hindmarsh&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=""&gt;ODEPACK: A systematicized collection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=""&gt;ODE Meeting Argonne&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h2 id=&#34;2025-11-19&#34;&gt;2025-11-19&lt;/h2&gt;
+&lt;h2 id="2026-05-03"&gt;2026-05-03&lt;/h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://portal.nersc.gov/project/sparse/butterflypack/index.html&#34;&gt;ButterflyPACK: Fast PDE solvers and transforms | NERSC&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</description>
-      <content:encoded><![CDATA[<p>A chronological collection of things I&rsquo;ve found interesting.</p>
+&lt;li&gt;&lt;a href="https://physics.aps.org/articles/v19/53"&gt;Let Natural Selection Sharpen Your Writing | American Physical Society&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://doi.org/10.1038/s44222-025-00323-4"&gt;Writing is thinking | nature reviews bioengineering&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="2026-04-25"&gt;2026-04-25&lt;/h2&gt;
+&lt;p&gt;Object-oriented Design Principles:&lt;/p&gt;</description><content:encoded><![CDATA[<p>A chronological collection of things I&rsquo;ve found interesting.</p>
+<h2 id="2026-05-28">2026-05-28</h2>
+<ul>
+<li><a href="https://www.sigarch.org/architecture-systems-are-changing-the-architects-role-in-the-era-of-agentic-co-design/">Architecture &amp; Systems are Changing: The Architect’s Role in the Era of Agentic Co-Design | Computer Architecture Today</a></li>
+<li><a href="https://developer.arm.com/community/arm-community-blogs/b/servers-and-cloud-computing-blog/posts/what-s-new-in-arm-performance-libraries-26-01">What&rsquo;s new in Arm Performance Libraries 26.01 | Arm Developer Community</a></li>
+<li><a href="https://developer.arm.com/community/arm-community-blogs/b/servers-and-cloud-computing-blog/posts/perf-libs-sparse-on-arm">perf-libs-sparse: Introducing a new open-source project for sparse linear algebra on Arm | Arm Developer Community</a></li>
+<li><a href="https://www.phoronix.com/review/nvidia-vera-benchmarks">NVIDIA Vera CPU Benchmarks: Olympus Cores Delivering The Best Performance Ever Seen On ARM | Phoronix</a></li>
+<li><a href="https://epubs.stfc.ac.uk/manifestation/4395/RAL_TR_2009_019.pdf">Code Coverage Analysis for Fortran | Science and Technology Facilities Council Rutherford Appleton Laboratory</a> (PDF)</li>
+<li><a href="https://davidoks.blog/p/why-japanese-companies-do-so-many">Why Japanese companies do so many different things | David Oks</a></li>
+<li><a href="https://youtu.be/Fa_KqW7np14?si=yVGbeF7bZ__55GXP">Advancing Computational Science with High-Order Finite Elements | Supercomputing Spotlights</a></li>
+<li><a href="https://borretti.me/article/human-bottlenecks">Human Bottlenecks | Fernando Borretti</a></li>
+<li><a href="https://www.thonking.ai/p/strangely-matrix-multiplications">Strangely, Matrix Multiplications on GPUs Run Faster When Given &ldquo;Predictable&rdquo; Data! | Thonk From First Principles</a></li>
+<li><a href="https://pub.towardsai.net/cuda-tile-gpu-programming-model-1a4bc93ae9b4">NVIDIA Took 20 Years to Ship 25 Lines of Python | Delanoe Pirard, Medium</a></li>
+<li><a href="https://hyper.ai/en/news/47715">Can the Tile Paradigm Reshape the Competitive Landscape of the GPU Programming Ecosystem? | HyperAI</a></li>
+</ul>
+<h2 id="2026-05-22">2026-05-22</h2>
+<ul>
+<li><a href="">Alan Hindmarsh</a></li>
+<li><a href="">ODEPACK: A systematicized collection</a></li>
+<li><a href="">ODE Meeting Argonne</a></li>
+</ul>
+<h2 id="2026-05-03">2026-05-03</h2>
+<ul>
+<li><a href="https://physics.aps.org/articles/v19/53">Let Natural Selection Sharpen Your Writing | American Physical Society</a></li>
+<li><a href="https://doi.org/10.1038/s44222-025-00323-4">Writing is thinking | nature reviews bioengineering</a></li>
+</ul>
+<h2 id="2026-04-25">2026-04-25</h2>
+<p>Object-oriented Design Principles:</p>
+<ul>
+<li><a href="https://www.infoworld.com/article/2161183/why-getter-and-setter-methods-are-evil.html">Why getter and setter methods are evil</a></li>
+<li><a href="https://www.yegor256.com/2014/09/16/getters-and-setters-are-evil.html">Getters/Setters. Evil. Period.</a></li>
+<li></li>
+</ul>
+<p>Misc:</p>
+<ul>
+<li><a href="http://literateprogramming.com/ctraps.pdf">C Traps and Pitfalls</a> (PDF, 117 KB)</li>
+<li><a href="https://developers.redhat.com/blog/2021/05/03/new-features-in-openmp-5-0-and-5-1#">New features in OpenMP 5.0 and 5.1</a></li>
+<li><a href="https://developers.redhat.com/articles/2022/11/17/new-features-openmp-51-and-openmp-52#">New features in OpenMP 5.1 and OpenMP 5.2</a></li>
+<li><a href="">Driving a New Era of Accelerated Computing Intel® Fortran Compiler (IFX)</a></li>
+</ul>
+<h2 id="2026-04-21">2026-04-21</h2>
+<p>Intel:</p>
+<ul>
+<li><a href="https://www.intel.com/content/www/us/en/developer/videos/threading-composability-manager-with-onetbb.html#:~:text=Intel%C2%AE%20oneAPI%20Threading%20Building%20Blocks%20adds%20the,between%20the%20runtimes%20for%20oneTBB%20and%20OpenMP*">End Parallel Runtime Scheduling Conflicts with Thread Composability Manager</a></li>
+</ul>
+<p>Misc:</p>
+<ul>
+<li><a href="https://cacm.acm.org/federal-funding-of-academic-research/the-origins-of-gpu-computing/">The Origins of GPU Computing | Communications of the ACM</a></li>
+</ul>
+<h2 id="2026-04-19">2026-04-19</h2>
+<p>ArmPL:</p>
+<ul>
+<li><a href="https://developer.arm.com/community/arm-community-blogs/b/servers-and-cloud-computing-blog/posts/arm-performance-libraries-25-04-and-arm-toolchain-for-linux-20-release">Arm Performance Libraries 25.04 and Arm Toolchain for Linux 20.1 Release</a></li>
+<li><a href="https://developer.arm.com/community/arm-community-blogs/b/servers-and-cloud-computing-blog/posts/arm-performance-libraries-24-10">Arm Performance Libraries 24.10</a></li>
+</ul>
+<p>Batched Linear Algebra:</p>
+<ul>
+<li><a href="https://eprints.maths.manchester.ac.uk/2557/1/submitted_version.pdf">The Design and Performance of Batched BLAS on Modern High-Performance Computing Systems</a> (PDF)</li>
+<li><a href="https://www.netlib.org/utk/people/JackDongarra/WEB-PAGES/Batched-BLAS-2017/talk02-relton.pdf">Batched BLAS APIs and Memory Layouts</a> (PDF)</li>
+<li><a href="https://github.com/tttapa/batmat">batmat: Fast linear algebra routines for batches of small matrices</a></li>
+<li><a href="https://www.physics.ntua.gr/~konstant/HetCluster/intel2021.7/Base/mkl/mkl_devref_c/GUID-DCBB919C-EE41-44F7-A49D-FF14538DECC7.html">Numerical Limitations for Compact BLAS and Compact LAPACK Routines</a></li>
+<li><a href="https://dl.acm.org/doi/epdf/10.1145/3126908.3126941">Designing vector-friendly compact BLAS and LAPACK kernels</a></li>
+<li><a href="https://www.cs.utexas.edu/~flame/BLISRetreat2018/Slides/Mesut_BLIS_Retreat_2018.pdf">INTEL® MKL Vectorized Compact routines</a> (PDF)</li>
+<li><a href="https://icl.utk.edu/bblas/siam-cse19/files/06-SIAM_CSE19_BatchedBLASIntel.pdf">Adventures in Batched Linear Algebra in Intel® Math Kernel Library</a> (PDF)</li>
+<li><a href="https://icl.utk.edu/bblas/sc24/">Batched BLAS, SC24 BoF Session</a></li>
+<li><a href="https://community.arm.com/arm-community-blogs/b/tools-software-ides-blog/posts/new-interleave-batched-linear-algebra-functions-in-arm-pl">Introducing interleave-batched linear algebra functions in Arm PL</a></li>
+<li><a href="https://github.com/giaf/blasfeo">BLASFEO - BLAS For Embedded Optimization</a></li>
+</ul>
+<p>cuTile:</p>
+<ul>
+<li><a href="https://developer.nvidia.com/blog/focus-on-your-algorithm-nvidia-cuda-tile-handles-the-hardware/">Focus on Your Algorithm—NVIDIA CUDA Tile Handles the Hardware</a></li>
+<li><a href="https://docs.nvidia.com/cuda/cutile-python/">cuTile Python | Nvidia</a></li>
+<li><a href="https://cfp.scipy.org/scipy2025/talk/PBLESZ/">cuTile, the New/Old Kid on the Block: Python Programming Models for GPUs</a></li>
+<li><a href="https://github.com/NVIDIA/cuda-tile">CUDA Tile IR</a></li>
+<li><a href="https://www.njordy.com/2025/12/14/cuTile/">cuTile Kernels</a></li>
+<li><a href="https://github.com/JuliaGPU/cuTile.jl">cuTile.jl</a></li>
+<li><a href="https://juliahub.com/blog/cutile.jl-bringing-nvidia-s-tile-based-gpu-programming-to-julia">cuTile.jl: Bringing NVIDIA&rsquo;s Tile-Based GPU Programming to Julia</a></li>
+<li><a href="https://github.com/NVIDIA/TileGym">TileGym</a></li>
+<li><a href="https://maknee.github.io/blog/2026/NVIDIA-TileIR-Internals-from-CuTile-to-MLIR-LLVM-to-SASS/">NVIDIA TileIR Internals: from CuTile to MLIR/LLVM to SASS</a></li>
+<li><a href="https://patricktoulme.substack.com/p/cutile-on-blackwell-nvidias-compiler">CuTile on Blackwell: NVIDIA&rsquo;s Compiler Moat Is Already Built</a></li>
+<li><a href="https://m-sp.org/downloads/eurollvm_2026_cuda_tile_ir.pdf">CUDA Tile IR: Lessons from a Tile-Centric CUDA Dialect for MLIR</a></li>
+</ul>
+<p>Interpreters:</p>
+<ul>
+<li><a href="https://stackoverflow.com/questions/511566/what-opcode-dispatch-strategies-are-used-in-efficient-interpreters">What opcode dispatch strategies are used in efficient interpreters?</a></li>
+<li><a href="https://langdev.stackexchange.com/questions/1724/what-are-some-common-ways-to-optimise-an-interpreter">What are some common ways to optimise an interpreter?</a></li>
+<li><a href="https://abepralle.wordpress.com/2009/01/25/how-not-to-make-a-virtual-machine-label-based-threading/">How not to make a virtual machine (label-based threading)</a></li>
+<li><a href="https://noelwelsh.com/posts/understanding-vm-dispatch/">Understanding Virtual Machine Dispatch through Duality</a></li>
+<li><a href="https://cs420.epfl.ch/archive/25/c/11_interp-vms.html">Interpreters and virtual machines</a></li>
+<li><a href="https://ceronman.com/blog/my-experience-crafting-an-interpreter-with-rust/">My experience crafting an interpreter with Rust</a></li>
+<li><a href="https://www.complang.tuwien.ac.at/forth/threaded-code.html">Threaded Code</a></li>
+<li><a href="https://stefan-marr.de/2024/02/why-are-my-bytecode-interpreters-slow/">Why Are My Bytecode Interpreters Slow? Hunting Truffles with VTune</a></li>
+<li><a href="https://stackoverflow.com/questions/58774170/how-to-speed-up-dynamic-dispatch-by-20-using-computed-gotos-in-standard-c">How to speed up dynamic dispatch by 20% using computed gotos in standard C++</a></li>
+<li><a href="https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables">Computed goto for efficient dispatch tables</a></li>
+<li><a href="https://gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html">Labels as Values</a></li>
+<li><a href="https://news.ycombinator.com/item?id=15395429">Are Jump Tables Always Fastest</a></li>
+</ul>
+<p>Unreachable:</p>
+<ul>
+<li><a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p1774r4.pdf">Portable assumptions</a></li>
+<li><a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0627r5.pdf">Function to mark unreachable code</a></li>
+<li><a href="https://langdev.stackexchange.com/questions/462/why-do-some-languages-not-have-an-unreachable-function">Why do some languages not have an &lsquo;unreachable&rsquo; function?</a></li>
+<li><a href="https://mmore500.com/2021/03/24/switch-default.html">Unreachable Switch Statement Default Cases</a></li>
+<li><a href="https://learn.microsoft.com/en-us/cpp/intrinsics/assume?view=msvc-170">__assume</a></li>
+<li><a href="https://softwareengineering.stackexchange.com/questions/399455/is-there-a-way-to-speed-up-a-big-switch-statement">Is there a way to speed up a big switch statement?</a></li>
+<li><a href="https://softwareengineering.stackexchange.com/questions/322788/most-efficient-method-for-large-switch-statements?noredirect=1&amp;lq=1">Most efficient method for large switch statements</a></li>
+</ul>
+<h2 id="2026-03-20">2026-03-20</h2>
+<p>Intepreters:</p>
+<ul>
+<li><a href="https://www.jonathanmueller.dev/talk/deep-dive-dispatch/">A Deep Dive into Dispatching Techniques | Jonathan Müller</a></li>
+<li><a href="https://blog.reverberate.org/2021/04/21/musttail-efficient-interpreters.html">Parsing Protobuf at 2+GB/s: How I Learned To Love Tail Calls in C | Josh Haberman</a></li>
+<li><a href="http://lua-users.org/lists/lua-l/2011-02/msg00742.html">Subject: Re: Suggestions on implementing an efficient instruction set simulator in LuaJIT2</a></li>
+<li><a href="https://www.lua.org/doc/jucs05.pdf">The Implementation of Lua 5.0</a> (PDF, 145 KB)</li>
+<li><a href="https://www.reddit.com/r/programming/comments/badl2/comment/c0lrus0/">LuaJIT 2 beta 3 is out: Support both x32 &amp; x64 (comment by mikemike)</a></li>
+<li><a href="https://zackoverflow.dev/writing/template-interpreters">Template Interpreters | zackoverflow</a></li>
+<li><a href="https://youtu.be/V8dnIw3amLA?si=qCtqYOaqwbzGoln_">Cheaply writing a fast interpreter - Neil Mitchell</a></li>
+<li><a href="https://inria.hal.science/hal-01100647/document">Branch Prediction and the Performance of Interpreters - Don’t Trust Folklore</a></li>
+<li><a href="https://www.reddit.com/r/ProgrammingLanguages/comments/oq4q4a/relative_performance_of_interpreter/">Relative performance of interpreter implementations</a></li>
+</ul>
+<h2 id="2026-02-05">2026-02-05</h2>
+<p>Misc:</p>
+<ul>
+<li><a href="https://developer.nvidia.com/blog/establishing-a-scalable-sparse-ecosystem-with-the-universal-sparse-tensor/">Establishing a Scalable Sparse Ecosystem with the Universal Sparse Tensor | Nvidia</a></li>
+<li><a href="https://arxiv.org/abs/2601.07827">Tensor Algebra Processing Primitives (TAPP): Towards a Standard for Tensor Operations | arXiv</a></li>
+<li><a href="https://raphlinus.github.io/gpu/2025/03/21/good-parallel-computer.html">I want a good parallel computer | Raph Levien</a></li>
+<li><a href="https://tomforsyth1000.github.io/blog.wiki.html#%5B%5BWhy%20didn%27t%20Larrabee%20fail%3F%5D%5D">Why didn&rsquo;t Larrabee fail? | TomF&rsquo;s Tech Blog</a></li>
+<li><a href="https://ubc.ca.panopto.com/Panopto/Pages/Viewer.aspx?id=880a1d92-30d7-4683-80e7-b1e000f501d3">Death and Life in Silicon Valley | Erik Lindholm</a> (lecture recording)</li>
+</ul>
+<p>Stencils:</p>
+<ul>
+<li><a href="https://dl.acm.org/doi/epdf/10.1145/509593.509605">Compiling stencils in high performance Fortran</a></li>
+<li><a href="https://inria.hal.science/hal-01955542/document">Register Optimizations for Stencils on GPUs</a></li>
+<li><a href="https://arxiv.org/pdf/2404.04441">Evaluation of Programming Models and Performance for Stencil Computation on Current GPU Architectures</a></li>
+</ul>
+<p>Batched BLAS:</p>
+<ul>
+<li><a href="https://icl.utk.edu/bblas/">Batched BLAS | Innovative Computing Laboratory</a></li>
+<li><a href="https://www.netlib.org/utk/people/JackDongarra/WEB-PAGES/Batched-BLAS-2017/talk10-siva.pdf">KokkosKernels: Compact Layouts for Batched Blas and Sparse Matrix-Matrix multiply</a></li>
+</ul>
+<p>Runtime dispatch:</p>
+<ul>
+<li><a href="https://lemire.me/blog/2020/07/17/the-cost-of-runtime-dispatch/">The cost of runtime dispatch | Daniel Lemire</a></li>
+<li><a href="https://gcc.gnu.org/onlinedocs/gcc/Function-Multiversioning.html">Function Multiversioning | GCC</a></li>
+<li><a href="https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2025-2/ax-qax.html">ax, Qax (Compiler Option) | Intel oneAPI DPC++/C++ Compiler</a></li>
+<li><a href="https://maskray.me/blog/2023-02-05-function-multi-versioning">Function multi-versioning | MaskRay</a></li>
+<li><a href="https://hannes.hauswedell.net/post/2017/12/09/fmv/">The - surprisingly limited - usefulness of function multiversioning in GCC</a></li>
+<li><a href="https://llvm.org/devmtg/2014-10/Slides/Christopher-Function%20Multiversioning%20Talk.pdf">Architecture Specific Code Generation and Function Multiversioning | Eric Christopher</a></li>
+<li><a href="https://stackoverflow.com/questions/44479069/generate-code-for-multiple-simd-architectures">Generate code for multiple SIMD architectures</a></li>
+<li><a href="https://nvidia.github.io/grace-cpu-benchmarking-guide/developer/cpudetect.html">Runtime CPU Detection | Nvidia Grace CPU Benchmarking Guide</a></li>
+<li><a href="https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=feature">Intel® Intrinsics Guide</a></li>
+<li><a href="http://johnnysswlab.com/cpu-dispatching-make-your-code-both-portable-and-fast/">CPU Dispatching: Make your code both portable and fast</a></li>
+<li><a href="https://www.intel.com/content/www/us/en/docs/onemkl/developer-guide-windows/2025-2/instruction-set-specific-dispatch-on-intel-archs.html">Instruction Set–Specific Dispatching on Intel® Architectures</a></li>
+<li><a href="https://numpy.org/doc/stable/reference/simd/how-it-works.html">How does the CPU dispatcher work? | NumPy</a></li>
+<li><a href="https://attractivechaos.wordpress.com/2017/09/04/on-cpu-dispatch/">On CPU dispatch | AttractiveChaos</a></li>
+</ul>
+<h2 id="2026-01-12">2026-01-12</h2>
+<p>Fortran Software Papers:</p>
+<ul>
+<li><a href="https://doi.org/10.1002/spe.4380030203">Serious FORTRAN (1973)</a></li>
+<li><a href="https://doi.org/10.1002/spe.4380030303">Serious FORTRAN—Part 2 (1973)</a></li>
+<li><a href="https://doi.org/10.1002/spe.4380111006">Fortran 77 portability (1981)</a></li>
+<li>[A fortran procedure for drawing some space-filling curves (1986)](<a href="https://doi.org/10.1002/spe.4380160607">https://doi.org/10.1002/spe.4380160607</a></li>
+<li><a href="https://www.cs.unc.edu/~stotts/COMP145/modules.html">Module coupling and cohesion (COMP145, 2000)</a> (see <a href="https://www.cs.unc.edu/~stotts/COMP145/">Team Software Engineering</a> course homepage)</li>
+<li><a href="https://dl.acm.org/doi/pdf/10.1145/181593.181602">Multibox Parsers (1994)</a> (PDF, 702 KB)</li>
+<li><a href="https://doi.org/10.1109/52.406759">Multibox parsers: no more handwritten lexical parsers</a></li>
+</ul>
+<p>Fortran Subsets (ELF90 and F):</p>
+<ul>
+<li><a href="https://dl.acm.org/doi/pdf/10.1145/263877.263884">Loren Meissner, Little Giants - The New Fortran Subsets (1996)</a> (PDF, 425 KB)</li>
+<li><a href="https://dl.acm.org/doi/pdf/10.1145/274104.274105">Jerry Wagener, Fortran Reflections (1997)</a></li>
+<li><a href="https://doi.org/10.1063/1.168632">Fortran 90 subsets offer simplified environment for first-time users (1998)</a></li>
+</ul>
+<p>Finite Difference Calculations:</p>
+<ul>
+<li><a href="https://doi.org/10.1002/spe.4380020404">An extension of FORTRAN containing finite difference operators (1972)</a></li>
+<li><a href="https://doi.org/10.1002/nme.1620090307">A Fortran program to generate finite difference formulas (1975)</a></li>
+<li><a href="https://doi.org/10.1016/0021-9991(78)90103-1">FORTRAN subprograms for finite-difference formulas (1976)</a></li>
+<li><a href="http://dx.doi.org/10.1090/S0025-5718-1988-0935077-0">Generation of finite difference formulas on arbitrarily spaced grids (1988)</a> (formulas are implemented <a href="https://github.com/bjodah/finitediff">here</a>, <a href="https://www.colorado.edu/amath/sites/default/files/attached-files/mathcomp_88_fd_formulas.pdf">authors copy</a>?)</li>
+<li><a href="https://www.proquest.com/openview/fff2a877976f61a2f96d5d5d8bebc2ae/1?pq-origsite=gscholar&amp;cbl=18750&amp;diss=y">An abstract machine for partial differential equations (1994)</a></li>
+<li><a href="https://developer.nvidia.com/blog/finite-difference-methods-cuda-fortran-part-1/">Finite Difference Methods in CUDA Fortran, Part 1</a></li>
+<li><a href="https://developer.nvidia.com/blog/finite-difference-methods-cuda-fortran-part-2/">Finite Difference Methods in CUDA Fortran, Part 2</a></li>
+</ul>
+<p>Make papers:</p>
+<ul>
+<li><a href="https://doi.org/10.1002/spe.4380140607">Automatic generation of make dependencies (1984)</a></li>
+<li><a href="https://doi.org/10.1002/spe.4380190805">A simple technique for automatic recompilation in modular programming languages (1989)</a></li>
+<li><a href="https://doi.org/10.1002/spe.4380141206">Avoiding trickle-down recompilation in the Mary2 implementation</a></li>
+</ul>
+<p>Misc:</p>
+<ul>
+<li><a href="https://wunkolo.github.io/post/2025/12/vpternlog-signed-saturation/">vpternlog: Signed Saturation</a></li>
+<li><a href="https://modal.com/gpu-glossary/readme">Modal, GPU Glossary</a></li>
+<li><a href="https://fabiensanglard.net/cuda/index.html">Fabien Sanglard, A History of Nvidia Stream Multiprocessor</a></li>
+<li><a href="https://www.lrz.de/fileadmin/Medien/Downloadbereich/Chroniken/LRZ-Chronik-1962-2012.pdf">Heinz-Gerd Hegering, 50 Jahre LRZ (1962-2012)</a></li>
+</ul>
+<h2 id="2025-12-21">2025-12-21</h2>
+<p>R history and other links:</p>
+<ul>
+<li><a href="https://www.stat.auckland.ac.nz/~ihaka/downloads/Interface98.pdf">R: Past and Future History | Ross Ihaka</a> (PDF, 92.5 KB)</li>
+<li><a href="https://sas.uwaterloo.ca/~rwoldfor/software/R-code/historyOfS.pdf">A Brief History of S | Richard A. Becker</a> (PDF, 151 KB)</li>
+<li><a href="https://www.r-project.org/conferences/useR-2006/Slides/Chambers.pdf">History of S and R | John Chamers</a> (PDF, 234 KB)</li>
+<li><a href="https://bookdown.org/rdpeng/rprogdatascience/history-and-overview-of-r.html">History and Overview of R | R Programming for Data Science</a></li>
+<li><a href="https://epub.ub.uni-muenchen.de/2085/1/tr012.pdf">R behind the scenes: Using S the (un)usual way | Friedrich Leisch</a> (PDF, 1357 KB)</li>
+</ul>
+<p>(Gathered for my reply <a href="https://fortran-lang.discourse.group/t/fsml-v0-1-0-alpha-initial-release/10561/11?u=ivanpribec">here</a>.)</p>
+<h2 id="2025-12-20">2025-12-20</h2>
+<p>Co-Array Fortran Resources:</p>
+<ul>
+<li><a href="https://wg5-fortran.org/N1801-N1850/N1824.pdf">Coarray in the next Fortran Standard | John Reid</a></li>
+<li><a href="https://doku.lrz.de/coarray-fortran-on-lrz-s-hpc-systems-10746527.html">Coarray Fortran on LRZ&rsquo;s HPC systems</a></li>
+<li><a href="https://coarrays.sourceforge.io/doc.html">Parallel programming with Fortran 2008 and 2018 coarrays | Anton Shterenlikht</a></li>
+<li><a href="https://github.com/tkoenig1/coarray-tutorial">coarray-tutorial | Thomas König</a> (look for <code>tutorial.md</code>)</li>
+<li><a href="https://cpe.ext.hpe.com/docs/latest/cce/man7/intro_pgas.7.html">Introduction to PGAS | Cray Compiler Environment, HPE</a></li>
+</ul>
+<p>Co-Array Fortran Articles:</p>
+<ul>
+<li>Numrich, R. W., Reid, J., &amp; Kim, K. (1998, June). Writing a multigrid solver using co-array fortran. In International Workshop on Applied Parallel Computing (pp. 390-399). Berlin, Heidelberg: Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/BFb0095362">https://doi.org/10.1007/BFb0095362</a></li>
+<li>Dotsenko, Y., Coarfa, C., &amp; Mellor-Crummey, J. (2004, October). A multi-platform co-array fortran compiler. In Proceedings. 13th International Conference on Parallel Architecture and Compilation Techniques, 2004. PACT 2004. (pp. 29-40). IEEE. <a href="https://dl.acm.org/doi/10.5555/1025127.1025994">https://dl.acm.org/doi/10.5555/1025127.1025994</a></li>
+<li>Numrich, R. W., &amp; Reid, J. (2005, August). Co-arrays in the next Fortran standard. In ACM SIGPLAN Fortran Forum (Vol. 24, No. 2, pp. 4-17). New York, NY, USA: ACM. <a href="https://doi.org/10.1145/1080399.1080400">https://doi.org/10.1145/1080399.1080400</a></li>
+<li>Numrich, R. W. (2005, September). A parallel numerical library for co-array Fortran. In International Conference on Parallel Processing and Applied Mathematics (pp. 960-969). Berlin, Heidelberg: Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/11752578_116">https://doi.org/10.1007/11752578_116</a></li>
+<li>Numrich, R. W. (2005). Parallel numerical algorithms based on tensor notation and Co-Array Fortran syntax. Parallel Computing, 31(6), 588-607. <a href="https://doi.org/10.1016/j.parco.2005.03.003">https://doi.org/10.1016/j.parco.2005.03.003</a></li>
+<li>Mellor-Crummey, J., Adhianto, L., Scherer III, W. N., &amp; Jin, G. (2009, October). A new vision for Coarray Fortran. In Proceedings of the Third Conference on Partitioned Global Address Space Programing Models (pp. 1-9). <a href="https://doi.org/10.1145/1809961.1809969">https://doi.org/10.1145/1809961.1809969</a></li>
+<li>Eachempati, D., Jun, H. J., &amp; Chapman, B. (2010, October). An open-source compiler and runtime implementation for Coarray Fortran. In Proceedings of the Fourth Conference on Partitioned Global Address Space Programming Model (pp. 1-8). <a href="https://doi.org/10.1145/2020373.2020386">https://doi.org/10.1145/2020373.2020386</a></li>
+<li>Eachempati, D., Richardson, A., Liao, T., Calandra, H., &amp; Chapman, B. (2012, November). A coarray fortran implementation to support data-intensive application development. In 2012 SC Companion: High Performance Computing, Networking Storage and Analysis (pp. 771-776). IEEE. <a href="https://doi.org/10.1109/SC.Companion.2012.106">https://doi.org/10.1109/SC.Companion.2012.106</a></li>
+<li>Mallinson, A. C., Jarvis, S. A., Gaudin, W. P., &amp; Herdman, J. A. (2014, October). Experiences at scale with PGAS versions of a Hydrodynamics application. In Proceedings of the 8th International Conference on Partitioned Global Address Space Programming Models (pp. 1-11). <a href="https://doi.org/10.1145/2676870.2676873">https://doi.org/10.1145/2676870.2676873</a></li>
+<li>Garain, S., Balsara, D. S., &amp; Reid, J. (2015). Comparing Coarray Fortran (CAF) with MPI for several structured mesh PDE applications. Journal of Computational Physics, 297, 237-253. <a href="https://doi.org/10.1016/j.jcp.2015.05.020">https://doi.org/10.1016/j.jcp.2015.05.020</a></li>
+<li>Sharma, A., &amp; Moulitsas, I. (2017). MPI to Coarray Fortran: experiences with a CFD solver for unstructured meshes. Scientific Programming, 2017(1), 3409647. <a href="https://doi.org/10.1155/2017/3409647">https://doi.org/10.1155/2017/3409647</a></li>
+<li>McKevitt, J., Vorobyov, E. I., &amp; Kulikov, I. (2025). Accelerating Fortran codes: A method for integrating Coarray Fortran with CUDA Fortran and OpenMP. Journal of Parallel and Distributed Computing, 195, 104977. <a href="https://doi.org/10.1016/j.jpdc.2024.104977">https://doi.org/10.1016/j.jpdc.2024.104977</a></li>
+</ul>
+<p>Fortran debate:</p>
+<ul>
+<li><a href="https://doi.org/10.1145/135226.135231">David Cann (1992). Retire Fortran? A Debate Rekindled</a> (an earlier version is available in the Supercomputing &lsquo;91 proceedings)</li>
+<li><a href="https://doi.org/10.1063/1.2973891">Kuck &amp; Wolfe (1984). A debate: Retire FORTRAN? No</a></li>
+<li><a href="https://doi.org/10.1063/1.2916244">J.R. McGraw (1984) A debate: Retire FORTRAN? Yes</a></li>
+</ul>
+<p>I found these at the bottom of the Fortran Wiki <a href="https://fortranwiki.org/fortran/show/Articles">Articles</a> page.</p>
+<h2 id="2025-12-18">2025-12-18</h2>
+<p>Nvidia PTX Resources:</p>
+<ul>
+<li><a href="https://developer.nvidia.com/blog/understanding-ptx-the-assembly-language-of-cuda-gpu-computing/">Understanding PTX, the Assembly Language of CUDA GPU Computing | Nvidia</a></li>
+<li><a href="https://developer.nvidia.com/blog/advanced-nvidia-cuda-kernel-optimization-techniques-handwritten-ptx/">Advanded NVIDIA CUDA Kernel Optimiziazion Techniques: Handwritten PTX | Nvidia</a></li>
+<li><a href="https://docs.nvidia.com/cuda/inline-ptx-assembly/index.html">Inline PTX Assembly in CUDA | Nvidia</a></li>
+<li><a href="https://modal.com/gpu-glossary/device-software/parallel-thread-execution">What is Parallel Thread Execution? | Modal</a></li>
+<li><a href="https://eunomia.dev/others/cuda-tutorial/02-ptx-assembly/">Tutorial: Understanding GPU Assembly with PTX | eunomia</a></li>
+<li><a href="https://docs.nvidia.com/cuda/parallel-thread-execution/">Parallel Thread Execution ISA Version 9.1 | Nvidia</a></li>
+<li><a href="https://docs.nvidia.com/cuda/archive/8.0/parallel-thread-execution/">Parallel Thread Execustion ISA Version 5.0 | Nvidia</a></li>
+<li><a href="https://docs.nvidia.com/cuda/archive/10.0/parallel-thread-execution/index.html">Parallel Thread Execution ISA Version 6.3 | Nvidia</a></li>
+<li><a href="https://developer.download.nvidia.com/compute/DevZone/docs/html/C/doc/ptx_isa_3.0.pdf">Parallel Thread Execution ISA Version 3.0 | Nvidia</a> (PDF, 2.2 MB)</li>
+<li><a href="https://www.cs.cmu.edu/afs/cs/academic/class/15668-s11/www/cuda-doc/ptx_isa_1.4.pdf">PTX: Parallel Thread Execution ISA Version 1.4</a> (PDF, 2.5 MB)</li>
+<li><a href="https://arcb.csc.ncsu.edu/~mueller/cluster/nvidia/2.0/ptx_isa_12.pdf">PTX: Parallel Thread Execution ISA Version 1.2</a> (PDF, 2.4 MB)</li>
+<li><a href="https://www.doc.ic.ac.uk/~wl/teachlocal/arch/papers/nvidia-PTX_ISA_1.0.pdf">PTX: Parallel Thread Execution ISA Version 1.0</a> (PDF, 558 KB)</li>
+<li><a href="https://thechipletter.substack.com/p/nvidias-ptx">Nvidia&rsquo;s PTX: Some background to the &lsquo;virtual instruction set&rsquo; that underpins CUDA | The Chip Letter</a></li>
+<li><a href="https://docs.nvidia.com/cuda/ptx-writers-guide-to-interoperability/index.html">PTX Writer&rsquo;s Guide to Interoperability | Nvidia</a></li>
+<li><a href="https://philipfabianek.com/posts/cuda-ptx-introduction/">A Gentle Introduction to CUDA PTX | Philip Fabianek</a> (<a href="https://news.ycombinator.com/item?id=45395156">HN Thread</a>)</li>
+<li><a href="https://docs.nvidia.com/cuda/cuda-binary-utilities/index.html">CUDA Binary Utilities | Nvidia</a></li>
+<li><a href="https://www.cs.uaf.edu/2011/spring/cs641/lecture/03_03_CUDA_PTX.html">CUDA PTX: GPU assembly language | Dr. Lawlor</a></li>
+<li><a href="https://maknee.github.io/blog/2025/Maybe-Consider-Putting-Cutlass-In-Your-CUDA-Kernels/">Maybe consider putting &ldquo;cutlass&rdquo; in your CUDA/Triton kernels | Henry Zhu</a></li>
+<li><a href="https://redplait.blogspot.com/2025/02/ptx-internals.html">ptx internals | redp</a></li>
+<li><a href="https://www.aleksagordic.com/blog/matmul">Inside NVIDIA GPUs: Anatomy of high performance matmul kernels | Aleksa Gordić</a></li>
+</ul>
 <h2 id="2025-11-26">2025-11-26</h2>
 <ul>
 <li><a href="https://www.eecs.harvard.edu/~htk/publication/1982-kung-why-systolic-architecture.pdf">Why Systolic Architectures?</a> (PDF, 2.4 MB)</li>
@@ -1151,14 +1346,7 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <ul>
 <li><a href="https://portal.nersc.gov/project/sparse/butterflypack/index.html">ButterflyPACK: Fast PDE solvers and transforms | NERSC</a></li>
 </ul>
-]]></content:encoded>
-    </item>
-    <item>
-      <title>What I&#39;m doing now</title>
-      <link>//localhost:1313/now/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>//localhost:1313/now/</guid>
-      <description>&lt;p&gt;This is my &lt;a href=&#34;https://sivers.org/nowff&#34;&gt;/now&lt;/a&gt; page, inspired by Derek Sivers and others at &lt;a href=&#34;https://nownownow.com/&#34;&gt;nownownow.com&lt;/a&gt;.&lt;/p&gt;
+]]></content:encoded></item><item><title>What I'm doing now</title><link>https://ivan-pi.github.io/now/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/now/</guid><description>&lt;p&gt;This is my &lt;a href="https://sivers.org/nowff"&gt;/now&lt;/a&gt; page, inspired by Derek Sivers and others at &lt;a href="https://nownownow.com/"&gt;nownownow.com&lt;/a&gt;.&lt;/p&gt;
 &lt;hr&gt;
 &lt;p&gt;(Last updated on 17/02/2019.)&lt;/p&gt;
 &lt;p&gt;At university I’m currently working on a project report on pasta drying, analyzing CT datasets of dry pasta, and writing a scientific publication on the same topic. Sounds &lt;em&gt;dry&lt;/em&gt;, but it’s not, really. ;)&lt;/p&gt;
@@ -1167,8 +1355,7 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 &lt;li&gt;Creating my personal website.&lt;/li&gt;
 &lt;li&gt;Adding finishing touches to the Modern Fortran NLopt wrapper. I posted about it recently on the Intel Fortran Forum.&lt;/li&gt;
 &lt;li&gt;Tinkering with PDEONE.&lt;/li&gt;
-&lt;/ul&gt;</description>
-      <content:encoded><![CDATA[<p>This is my <a href="https://sivers.org/nowff">/now</a> page, inspired by Derek Sivers and others at <a href="https://nownownow.com/">nownownow.com</a>.</p>
+&lt;/ul&gt;</description><content:encoded><![CDATA[<p>This is my <a href="https://sivers.org/nowff">/now</a> page, inspired by Derek Sivers and others at <a href="https://nownownow.com/">nownownow.com</a>.</p>
 <hr>
 <p>(Last updated on 17/02/2019.)</p>
 <p>At university I’m currently working on a project report on pasta drying, analyzing CT datasets of dry pasta, and writing a scientific publication on the same topic. Sounds <em>dry</em>, but it’s not, really. ;)</p>
@@ -1178,7 +1365,4 @@ Fast Library for Approximate Nearest Neighbors (original library <a href="http:/
 <li>Adding finishing touches to the Modern Fortran NLopt wrapper. I posted about it recently on the Intel Fortran Forum.</li>
 <li>Tinkering with PDEONE.</li>
 </ul>
-]]></content:encoded>
-    </item>
-  </channel>
-</rss>
+]]></content:encoded></item></channel></rss>

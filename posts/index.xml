@@ -1,183 +1,248 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
-  <channel>
-    <title>Ivan Pribec</title>
-    <link>//localhost:1313/posts/</link>
-    <description>Recent content on Ivan Pribec</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright>
-    <lastBuildDate>Sun, 23 Nov 2025 00:00:00 +0100</lastBuildDate>
-    <atom:link href="//localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Measuring the performance of the norm2-intrinsic</title>
-      <link>//localhost:1313/posts/2025/11/measuring-the-performance-of-the-norm2-intrinsic/</link>
-      <pubDate>Sun, 23 Nov 2025 00:00:00 +0100</pubDate>
-      <guid>//localhost:1313/posts/2025/11/measuring-the-performance-of-the-norm2-intrinsic/</guid>
-      <description>&lt;p&gt;A couple months ago, Jean-Christophe Loiseau from Art et Métiers Institute of Technology published a &lt;a href=&#34;https://loiseaujc.github.io/posts/blog-title/jacobi_experiments.html&#34;&gt;very nice article&lt;/a&gt; about speeding-up the Jacobi method in Fortran using multi-threading.
-If you are interested in Fortran or you&amp;rsquo;re a student in scientific computing, I can highly recommend reading it.&lt;/p&gt;
-&lt;p&gt;One thing that piqued my interest in the blog was the following sentence,&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Either way [of computing the two-norm] is fine, &lt;code&gt;norm2&lt;/code&gt; is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>A couple months ago, Jean-Christophe Loiseau from Art et Métiers Institute of Technology published a <a href="https://loiseaujc.github.io/posts/blog-title/jacobi_experiments.html">very nice article</a> about speeding-up the Jacobi method in Fortran using multi-threading.
-If you are interested in Fortran or you&rsquo;re a student in scientific computing, I can highly recommend reading it.</p>
-<p>One thing that piqued my interest in the blog was the following sentence,</p>
-<blockquote>
-<p>Either way [of computing the two-norm] is fine, <code>norm2</code> is an intrinsic Fortran function and its implementation has already been optimized by the compiler vendors anyway.</p>
-</blockquote>
-<p>The two ways which are discussed are using the intrinsic function, i.e. <code>norm2(u - v)</code>, or using a <code>do concurrent</code> loop construct:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span>	<span style="color:#8839ef">real</span>(dp) <span style="color:#d20f39">::</span> l2_norm
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    l2_norm <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">0.0_dp</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">do</span> <span style="color:#8839ef">concurrent</span>(i<span style="color:#04a5e5;font-weight:bold">=</span><span style="color:#fe640b">2</span>:nx<span style="color:#04a5e5;font-weight:bold">-</span><span style="color:#fe640b">1</span>, j<span style="color:#04a5e5;font-weight:bold">=</span><span style="color:#fe640b">2</span>:ny<span style="color:#04a5e5;font-weight:bold">-</span><span style="color:#fe640b">1</span>) reduce(<span style="color:#04a5e5;font-weight:bold">+</span>:l2_norm)
-</span></span><span style="display:flex;"><span>        l2_norm <span style="color:#04a5e5;font-weight:bold">=</span> l2_norm <span style="color:#04a5e5;font-weight:bold">+</span> (u(i, j) <span style="color:#04a5e5;font-weight:bold">-</span> v(i, j))<span style="color:#04a5e5;font-weight:bold">**</span><span style="color:#fe640b">2</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">enddo</span>
-</span></span><span style="display:flex;"><span>    l2_norm <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">sqrt</span>(l2_norm)</span></span></code></pre></div>
-<p>In the past I&rsquo;ve noticed that despite their built-in status, intrinsic functions are not always optimized to the degree you thought they would be. Hager and Wellein summarize this nicely when they say</p>
-<blockquote>
-<p>It must be understood that compilers can be surprisingly smart and stupid at the same time.
-A common statement in discussions about compiler capabilities is &ldquo;The compiler be able to figure that out.&rdquo;
-This is often enough a false assumtion.</p>
-</blockquote>
-<p>At this point I must say that writing an accurate <code>norm2</code> function without undue underflows or overflows is surprisingly hard work.
-I won&rsquo;t go into details about the different algorithms, you can peruse the links in the reference section below if you want to.</p>
-<p>Instead, we&rsquo;ll be looking at the performance of the &ldquo;simple loop&rdquo; algorithm, expressed using different language constructs. For simplicity we&rsquo;ll look at the two-norm of an array of size 2000^2 (roughly 30.5 MB) filled with random values.</p>
-<p>Before we start looking at different Fortran implementations, let&rsquo;s select some performance baselines.
-Besides the <code>norm2</code> intrinsic function introduces in Fortran 2008, we can also measure the <code>DNRM2</code> functions that are provided in different BLAS libraries.
-For more variety I&rsquo;ve also prepared a 2-norm function using the Eigen C++ library:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cxx" data-lang="cxx"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#include</span> <span style="color:#9ca0b0;font-weight:bold;font-style:italic">&lt;Eigen/Dense&gt;</span><span style="color:#9ca0b0;font-style:italic">
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>
-</span></span><span style="display:flex;"><span><span style="color:#8839ef">extern</span> <span style="color:#40a02b">&#34;C&#34;</span> <span style="color:#d20f39">double</span> norm2_eigen(<span style="color:#d20f39">int</span> n, <span style="color:#8839ef">const</span> <span style="color:#d20f39">double</span> <span style="color:#04a5e5;font-weight:bold">*</span>x)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>	assert(n <span style="color:#04a5e5;font-weight:bold">&gt;=</span> <span style="color:#fe640b">0</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">if</span> (n <span style="color:#04a5e5;font-weight:bold">==</span> <span style="color:#fe640b">0</span> <span style="color:#04a5e5;font-weight:bold">||</span> x <span style="color:#04a5e5;font-weight:bold">==</span> <span style="color:#8839ef">nullptr</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#8839ef">return</span> <span style="color:#fe640b">0.0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    Eigen<span style="color:#04a5e5;font-weight:bold">::</span>Map<span style="color:#04a5e5;font-weight:bold">&lt;</span><span style="color:#8839ef">const</span> Eigen<span style="color:#04a5e5;font-weight:bold">::</span>VectorXd<span style="color:#04a5e5;font-weight:bold">&gt;</span> v(x, n);
-</span></span><span style="display:flex;"><span>    <span style="color:#8839ef">return</span> v.norm();
-</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
-<p>For the tests below I&rsquo;ll be using an Apple M2 Pro CPU.
-I&rsquo;m using gfortran 15.2 as my main Fortran compiler and the preinstalled Apple clang 17 compiler for C++.</p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Ivan Pribec</title><link>https://ivan-pi.github.io/posts/</link><description>Recent content on Ivan Pribec</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright><lastBuildDate>Sat, 18 Jul 2026 00:00:00 +0200</lastBuildDate><atom:link href="https://ivan-pi.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Sizing RBF-FD Stencils for Modern CPU Caches</title><link>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</link><pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate><guid>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</guid><description>&lt;p&gt;One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
+The number of monomials terms in the augmented polynomial basis is given by the &lt;a href="https://en.wikipedia.org/wiki/Triangular_number"&gt;triangular numbers&lt;/a&gt; in 2-d and the &lt;a href="https://en.wikipedia.org/wiki/Tetrahedral_number"&gt;tetrahedral numbers&lt;/a&gt; in 3-d.
+The number of terms can also be read from Pascal&amp;rsquo;s triangle/pyramid.&lt;/p&gt;
+&lt;p&gt;For the RBF stencil size a common heuristic is to use twice the number of polynomials terms.
+This heuristic originates from the work of Grady Wright.
+While this rule of thumb is a standard starting point for stencil sizing, the relationship between accuracy, computational time, and monomial augmentation remains an active area of research.
+Readers can find more information in the analysis by &lt;a href="https://doi.org/10.1007/s10915-020-01401-y"&gt;Jančič, Slak, and Kosec (2021)&lt;/a&gt; and citing works.&lt;/p&gt;</description><content:encoded><![CDATA[<p>One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
+The number of monomials terms in the augmented polynomial basis is given by the <a href="https://en.wikipedia.org/wiki/Triangular_number">triangular numbers</a> in 2-d and the <a href="https://en.wikipedia.org/wiki/Tetrahedral_number">tetrahedral numbers</a> in 3-d.
+The number of terms can also be read from Pascal&rsquo;s triangle/pyramid.</p>
+<p>For the RBF stencil size a common heuristic is to use twice the number of polynomials terms.
+This heuristic originates from the work of Grady Wright.
+While this rule of thumb is a standard starting point for stencil sizing, the relationship between accuracy, computational time, and monomial augmentation remains an active area of research.
+Readers can find more information in the analysis by <a href="https://doi.org/10.1007/s10915-020-01401-y">Jančič, Slak, and Kosec (2021)</a> and citing works.</p>
+<p>The tables below show how the RBF-FD matrix dimensions varies for 2-D and 3-D RBF-FD approximation.
+We also include the storage size of the matrices for 32- and 64-bit floats.</p>
+<p><strong>2-D RBF-FD approximation</strong></p>
 <table>
   <thead>
       <tr>
-          <th>Library</th>
-          <th>Elapsed (ms)</th>
-          <th>Bandwidth (GB/s)</th>
-          <th>Different bits</th>
+          <th>Poly order</th>
+          <th>Number of monomials</th>
+          <th>Matrix size (RBF + poly)</th>
+          <th>Storage - fp32 (KB)</th>
+          <th>Storage - fp64 (KB)</th>
       </tr>
   </thead>
   <tbody>
       <tr>
-          <td><code>norm2</code></td>
-          <td>4.9</td>
-          <td>6.1</td>
-          <td>5</td>
-      </tr>
-      <tr>
-          <td><code>norm2_eigen</code></td>
-          <td>0.89</td>
-          <td>33.1</td>
-          <td>2</td>
-      </tr>
-      <tr>
-          <td>Apple Accelerate</td>
-          <td>1.2</td>
-          <td>22.5</td>
-          <td>2</td>
-      </tr>
-      <tr>
-          <td>OpenBLAS</td>
-          <td>4.9</td>
-          <td>6.0</td>
-          <td>4</td>
-      </tr>
-      <tr>
-          <td>ArmPL</td>
-          <td>2.4</td>
-          <td>12.2</td>
+          <td>1</td>
+          <td>1</td>
           <td>3</td>
+          <td>0.035</td>
+          <td>0.070</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td>3</td>
+          <td>9</td>
+          <td>0.316</td>
+          <td>0.633</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td>6</td>
+          <td>18</td>
+          <td>1.266</td>
+          <td>2.531</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td>10</td>
+          <td>30</td>
+          <td>3.516</td>
+          <td>7.031</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td>15</td>
+          <td>45</td>
+          <td>7.910</td>
+          <td>15.820</td>
+      </tr>
+      <tr>
+          <td>6</td>
+          <td>21</td>
+          <td>63</td>
+          <td>15.504</td>
+          <td>31.008</td>
+      </tr>
+      <tr>
+          <td>7</td>
+          <td>28</td>
+          <td>84</td>
+          <td>27.563</td>
+          <td>55.125</td>
+      </tr>
+      <tr>
+          <td>8</td>
+          <td>36</td>
+          <td>108</td>
+          <td>45.563</td>
+          <td>91.125</td>
+      </tr>
+      <tr>
+          <td>9</td>
+          <td>45</td>
+          <td>135</td>
+          <td>71.191</td>
+          <td>142.383</td>
+      </tr>
+      <tr>
+          <td>10</td>
+          <td>55</td>
+          <td>165</td>
+          <td>106.348</td>
+          <td>212.695</td>
       </tr>
   </tbody>
 </table>
-<p>As we can see from the table above, there is quite a spread in the results.
-This might be due to the use of different algorithms, but also due to quality of the generated code.
-The use of different algorithms, or as it may be simply, different order of evaluation,
-can be inferred from the number of different bits compared to a value computed using quadruple precision:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">integer</span>, <span style="color:#8839ef">parameter</span> <span style="color:#d20f39">::</span> qp <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">selected_real_kind</span>(<span style="color:#fe640b">32</span>)
-</span></span><span style="display:flex;"><span><span style="color:#8839ef">real</span>(dp) <span style="color:#d20f39">::</span> r0
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>r0 <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">norm2</span>(<span style="color:#8839ef">real</span>(u,<span style="color:#04a5e5">kind</span><span style="color:#04a5e5;font-weight:bold">=</span>qp))</span></span></code></pre></div>
-<p>Note that the Fortran standard only requires <code>norm2</code> to return a <em>processor-dependent</em>
-approximation of the 2-norm. (In Fortran jargon, processor is the name of the compiler or interpreter.)</p>
-<p>What to make of these results? Is this the top performance which can be reached?
-Assuming the naive simple loop algorithm,</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">do</span> i <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>, n
-</span></span><span style="display:flex;"><span>	nrm <span style="color:#04a5e5;font-weight:bold">=</span> nrm <span style="color:#04a5e5;font-weight:bold">+</span> u(i)<span style="color:#04a5e5;font-weight:bold">**</span><span style="color:#fe640b">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span> <span style="color:#8839ef">do</span>
-</span></span><span style="display:flex;"><span>nrm <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#04a5e5">sqrt</span>(nrm)</span></span></code></pre></div>
-<p>this operation tends to be memory intensive.
-For each new element loaded we perform two operations (one addition and one multiplication).
-Assuming 64-bit doubles, this gives a code balance of 4 bytes / flop.</p>
-<h2 id="unrolling-and-wide">Unrolling and wide</h2>
-<p class="notice">
-  <em>Comment:</em> one downside of <code>DNRM2</code> is it assumed the input is a contiguous 1-d vector.
-This means if want to only calculate the two-norm over the interior region the compiler will probably perform copy-in/copy-out.
-</p>
-
-<p>Maybe you know the phrase: &ldquo;Never look a gift hourse in the mouth&rdquo;.
-At the end of the day, we should all be grateful to have awesome compilers like gfortran and flang.</p>
-<p>Since compilers evolve over time, remember to take these results with a grain of salt.
-Maybe the compiler of the future you are using has already solved some of these issues, at least I strongly wish so.</p>
-<h2 id="references">References</h2>
-<ul>
-<li><a href="https://doi.org/10.1145/355769.355771">Blue, J. L. (1978). A portable Fortran program to find the Euclidean norm of a vector. ACM Transactions on Mathematical Software (TOMS), 4(1), 15-23.</a></li>
-<li><a href="https://doi.org/10.1145/3134441">Hanson, R. J., &amp; Hopkins, T. (2017). Remark on algorithm 539: A modern Fortran reference implementation for carefully computing the Euclidean norm. ACM Transactions on Mathematical Software (TOMS), 44(3), 1-23.</a></li>
-<li><a href="https://doi.org/10.1145/3061665">Anderson, E. (2017). Algorithm 978: Safe scaling in the level 1 BLAS. ACM Transactions on Mathematical Software (TOMS), 44(1), 1-28.</a></li>
-</ul>
-<p>There are also newer works investigating the use of double-word arithmetic:</p>
-<ul>
-<li><a href="https://doi.org/10.1007/978-3-030-86653-2_7">Harayama, T., Kudo, S., Mukunoki, D., Imamura, T., &amp; Takahashi, D. (2021, September). A Rapid Euclidean Norm Calculation Algorithm that Reduces Overflow and Underflow. In International Conference on Computational Science and Its Applications (pp. 95-110). Cham: Springer International Publishing.</a></li>
-<li><a href="https://doi.org/10.1145/3568672">Lefèvre, V., Louvet, N., Muller, J. M., Picot, J., &amp; Rideau, L. (2023). Accurate calculation of Euclidean norms using double-word arithmetic. ACM Transactions on Mathematical Software, 49(1), 1-34.</a></li>
-</ul>
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Is the Humble For-Loop a Good Way to Search an Array?</title>
-      <link>//localhost:1313/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</link>
-      <pubDate>Sat, 22 Nov 2025 00:00:00 +0100</pubDate>
-      <guid>//localhost:1313/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</guid>
-      <description>&lt;p&gt;While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:&lt;/p&gt;
-&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;C devs will tell you this is peak API and Programming Languages design,&lt;br&gt;&lt;br&gt;And nothing better has been invented since 1972. &lt;a href=&#34;https://t.co/mqELKMVEOb&#34;&gt;pic.twitter.com/mqELKMVEOb&lt;/a&gt;&lt;/p&gt;&amp;mdash; Dmitrii Kovanikov (@ChShersh) &lt;a href=&#34;https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw&#34;&gt;November 20, 2025&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
+<p><strong>3-D RBF-FD approximation</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Poly order</th>
+          <th>Number of monomials</th>
+          <th>Matrix size (RBF + poly)</th>
+          <th>Storage - fp32 (KB)</th>
+          <th>Storage - fp64 (KB)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td>1</td>
+          <td>3</td>
+          <td>0.035</td>
+          <td>0.070</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td>4</td>
+          <td>12</td>
+          <td>0.563</td>
+          <td>1.125</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td>10</td>
+          <td>30</td>
+          <td>3.516</td>
+          <td>7.031</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td>20</td>
+          <td>60</td>
+          <td>14.063</td>
+          <td>28.125</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td>35</td>
+          <td>105</td>
+          <td>43.066</td>
+          <td>86.133</td>
+      </tr>
+      <tr>
+          <td>6</td>
+          <td>56</td>
+          <td>168</td>
+          <td>110.250</td>
+          <td>220.500</td>
+      </tr>
+      <tr>
+          <td>7</td>
+          <td>84</td>
+          <td>252</td>
+          <td>248.063</td>
+          <td>496.125</td>
+      </tr>
+      <tr>
+          <td>8</td>
+          <td>120</td>
+          <td>360</td>
+          <td>506.250</td>
+          <td>1012.500</td>
+      </tr>
+      <tr>
+          <td>9</td>
+          <td>165</td>
+          <td>495</td>
+          <td>957.129</td>
+          <td>1914.258</td>
+      </tr>
+      <tr>
+          <td>10</td>
+          <td>220</td>
+          <td>660</td>
+          <td>1701.563</td>
+          <td>3403.125</td>
+      </tr>
+  </tbody>
+</table>
+<p>When computing the RBF-FD approximation weights via LU factorization or other forms of factorization (i.e. block Cholesky) the matrix will reside in the L1 or L2 cache.
+The maximum matrix size that fits in cache also depends on the number of right-hand sides (operators) being solved simultaneously, as those vectors must also share the cache.</p>
+<p>Here are the L1 data cache sizes of a few recent CPU architectures:</p>
+<table>
+  <thead>
+      <tr>
+          <th>CPU</th>
+          <th>L1D Cache Size (KB)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Apple M-series (P-core)</td>
+          <td>128</td>
+      </tr>
+      <tr>
+          <td>Nvidia Grace</td>
+          <td>64</td>
+      </tr>
+      <tr>
+          <td>Fujitsu A64FX</td>
+          <td>64</td>
+      </tr>
+      <tr>
+          <td>Intel Granite Rapids</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>Intel Sapphire Rapids</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>Intel Core 13th/14th Gen</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>Intel Core 11th Gen</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>AMD Zen 5</td>
+          <td>48</td>
+      </tr>
+      <tr>
+          <td>AMD Zen 4</td>
+          <td>32</td>
+      </tr>
+  </tbody>
+</table>
+<p>For polynomials below order 7 in 2D (or 5 in 3D) the RBF-FD matrices fit comfortably in the lowest cache level.
+The Apple M-series and recent ARM servers like the Nvidia Grace or Fujitsu A64FX have a slight advantage due to the larger L1 cache sizes.
+Intel and AMD CPUs used 32 KB L1 data caches for more than a decade.
+AMD increased the size only recently with the Zen 5 series launched in 2024.
+Intel made the upgrade from 32 KB to 48 KB in the Sunny Cove architecture launched in 2019.</p>
+<p>(Note: Apples&rsquo;s efficiency cores (E-cores) use smaller 64 kB L1D caches.
+Intel&rsquo;s efficiency cores have remained at 32 kB L1 data caches. )</p>
+]]></content:encoded></item><item><title>Is the Humble For-Loop a Good Way to Search an Array?</title><link>https://ivan-pi.github.io/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</link><pubDate>Sat, 22 Nov 2025 00:00:00 +0100</pubDate><guid>https://ivan-pi.github.io/posts/2025/11/is-the-humble-for-loop-a-good-way-to-search-an-array/</guid><description>&lt;p&gt;While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:&lt;/p&gt;
+&lt;blockquote class="twitter-tweet"&gt;&lt;p lang="en" dir="ltr"&gt;C devs will tell you this is peak API and Programming Languages design,&lt;br&gt;&lt;br&gt;And nothing better has been invented since 1972. &lt;a href="https://t.co/mqELKMVEOb"&gt;pic.twitter.com/mqELKMVEOb&lt;/a&gt;&lt;/p&gt;&amp;mdash; Dmitrii Kovanikov (@ChShersh) &lt;a href="https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw"&gt;November 20, 2025&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src="https://platform.twitter.com/widgets.js" charset="utf-8"&gt;&lt;/script&gt;
 &lt;p&gt;This got me wondering: how fast &lt;em&gt;are&lt;/em&gt; &amp;ldquo;modern&amp;rdquo; alternatives?&lt;/p&gt;
-&lt;h2 id=&#34;searching-for-an-element-in-c&#34;&gt;Searching for an element in C++&lt;/h2&gt;
+&lt;h2 id="searching-for-an-element-in-c"&gt;Searching for an element in C++&lt;/h2&gt;
 &lt;p&gt;One of the C++ proponents in the thread suggested the following &amp;ldquo;ultra-modern&amp;rdquo; solution using
-C++23 &lt;a href=&#34;https://en.cppreference.com/w/cpp/ranges/enumerate_view.html&#34;&gt;&lt;code&gt;std::views::enumerate&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:</p>
+C++23 &lt;a href="https://en.cppreference.com/w/cpp/ranges/enumerate_view.html"&gt;&lt;code&gt;std::views::enumerate&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;</description><content:encoded><![CDATA[<p>While scrolling through Twitter (now X) the other evening, I stumbled upon a provocative little programming snippet:</p>
 <blockquote class="twitter-tweet"><p lang="en" dir="ltr">C devs will tell you this is peak API and Programming Languages design,<br><br>And nothing better has been invented since 1972. <a href="https://t.co/mqELKMVEOb">pic.twitter.com/mqELKMVEOb</a></p>&mdash; Dmitrii Kovanikov (@ChShersh) <a href="https://twitter.com/ChShersh/status/1991561035200033182?ref_src=twsrc%5Etfw">November 20, 2025</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <p>This got me wondering: how fast <em>are</em> &ldquo;modern&rdquo; alternatives?</p>
 <h2 id="searching-for-an-element-in-c">Searching for an element in C++</h2>
@@ -709,55 +774,41 @@ cmake .. \
 </span></span><span style="display:flex;"><span>BM_find_int_iter/32768          4851 ns         4850 ns       142512 bytes_per_second=25.1686Gi/s
 </span></span><span style="display:flex;"><span>BM_find_int_rbfor/32768         4834 ns         4832 ns       144733 bytes_per_second=25.2625Gi/s
 </span></span><span style="display:flex;"><span>BM_find_int_range/32768         5175 ns         5010 ns       100000 bytes_per_second=24.3661Gi/s</span></span></code></pre></div>
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Evaluating the closed form coefficients of Laguerre polynomials</title>
-      <link>//localhost:1313/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link>
-      <pubDate>Wed, 29 Dec 2021 00:00:00 +0100</pubDate>
-      <guid>//localhost:1313/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid>
-      <description>&lt;h1 id=&#34;evaluating-the-closed-form-coefficients-of-laguerre-polynomials&#34;&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;
+]]></content:encoded></item><item><title>Evaluating the closed form coefficients of Laguerre polynomials</title><link>https://ivan-pi.github.io/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</link><pubDate>Wed, 29 Dec 2021 00:00:00 +0100</pubDate><guid>https://ivan-pi.github.io/posts/2021/12/evaluating-the-closed-form-coefficients-of-laguerre-polynomials/</guid><description>&lt;h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials"&gt;Evaluating the closed form coefficients of Laguerre polynomials&lt;/h1&gt;
 &lt;p&gt;For some numerical applications it can be useful to work with the closed form
 expression for Laguerre polynomials. The closed form is given by&lt;/p&gt;
-
-&lt;table style=&#34;width: 100%&#34;&gt;
-&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
-&lt;td&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;
-&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(1)&lt;/td&gt;
+&lt;table style="width: 100%; border: none; margin: 1rem 0;"&gt;
+&lt;tbody style="border: none;"&gt;
+&lt;tr style="background: none; border: none;"&gt;
+&lt;td style="border: none; padding: 0; width: 2.5rem;"&gt;&lt;/td&gt;
+&lt;td style="border: none; padding: 0; text-align: center;"&gt;$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$&lt;/td&gt;
+&lt;td style="border: none; padding: 0; width: 2.5rem; text-align: right;"&gt;(1)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
 &lt;/table&gt;
-
-
-&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;
-
-&lt;table style=&#34;width: 100%&#34;&gt;
-&lt;td style=&#34;width: 10000px;&#34;&gt;&lt;/td&gt;
-&lt;td&gt;$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$&lt;/td&gt;
-&lt;td style=&#34;width: 10000px; text-align: right;&#34;&gt;(2)&lt;/td&gt;
-&lt;/table&gt;
-
-
-&lt;p&gt;Since $n$ and $k$ are both integers, the coefficients are rational numbers.
-For most computational applications we will likely only need to work with
-floating point approximations of the coefficients.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials">Evaluating the closed form coefficients of Laguerre polynomials</h1>
+&lt;p&gt;We can evaluate the coefficients with the help of the factorial formula&lt;/p&gt;</description><content:encoded><![CDATA[<h1 id="evaluating-the-closed-form-coefficients-of-laguerre-polynomials">Evaluating the closed form coefficients of Laguerre polynomials</h1>
 <p>For some numerical applications it can be useful to work with the closed form
 expression for Laguerre polynomials. The closed form is given by</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$</td>
-<td style="width: 10000px; text-align: right;">(1)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$L_n(x) = \sum_{k=0}^n {n \choose k} \frac{(-1)^k}{k!} x^k$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(1)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>We can evaluate the coefficients with the help of the factorial formula</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
-<td style="width: 10000px; text-align: right;">(2)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(2)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>Since $n$ and $k$ are both integers, the coefficients are rational numbers.
 For most computational applications we will likely only need to work with
@@ -766,13 +817,15 @@ floating point approximations of the coefficients.</p>
 be careful to avoid overflow. For example if we try to compute $$n!$$ using default Fortran integers (32-bit), it will only be possible to calculate coefficients for $n \leq 12$.</p>
 <p>To avoid such issues we can calculate the coefficients using the
 the gamma function $\Gamma$ and the logarithm thereof. This follows from the helpful observation that for integer arguments</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$\Gamma(n&#43;1) = n!$$</td>
-<td style="width: 10000px; text-align: right;">(3)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$\Gamma(n&#43;1) = n!$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(3)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>For the coefficients of $L_n(x)$, a straightforward Fortran implementation might look as follows:</p>
 
@@ -799,37 +852,33 @@ The coefficients returned by the procedure are given in <em>ascending</em> order
 powers of $x$.</p>
 <p>A similar procedure can be written for the derivative of the Laguerre polynomial.
 These are given be the expression</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$L&#39;_n(x) = \sum_{k=0}^n \binom{n}{k}\frac{(-1)^k}{k!} k x^{k-1}$$</td>
-<td style="width: 10000px; text-align: right;">(4)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$L&#39;_n(x) = \sum_{k=0}^n \binom{n}{k}\frac{(-1)^k}{k!} k x^{k-1}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(4)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>Here we should emphasize that the $i$-th derivative of a Laguerre polynomial
 is polynomial of order ${n - i}$ (a polynomial of order $n$
 is described by $n+1$ coefficients).</p>
 <p>The implementation can also be adapted easily to return the coefficients of
 the generalized Laguerre polynomials with the following closed form expression</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$L_n^{(\alpha)}(x) = \sum_{k=0}^n (-1)^k \binom{n &#43; \alpha}{ n - k} \frac{x^k}{k!}$$</td>
-<td style="width: 10000px; text-align: right;">(5)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$L_n^{(\alpha)}(x) = \sum_{k=0}^n (-1)^k \binom{n &#43; \alpha}{ n - k} \frac{x^k}{k!}$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(5)</td>
+    </tr>
+  </tbody>
 </table>
 
-
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Setting up a personal website using Hugo</title>
-      <link>//localhost:1313/posts/2020/02/setting-up-a-personal-website-using-hugo/</link>
-      <pubDate>Sat, 15 Feb 2020 00:00:00 +0100</pubDate>
-      <guid>//localhost:1313/posts/2020/02/setting-up-a-personal-website-using-hugo/</guid>
-      <description>&lt;p&gt;As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).&lt;/p&gt;
-&lt;p&gt;Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>As many before me, I&rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&rsquo;m saving some of these for blog posts).</p>
+]]></content:encoded></item><item><title>Setting up a personal website using Hugo</title><link>https://ivan-pi.github.io/posts/2020/02/setting-up-a-personal-website-using-hugo/</link><pubDate>Sat, 15 Feb 2020 00:00:00 +0100</pubDate><guid>https://ivan-pi.github.io/posts/2020/02/setting-up-a-personal-website-using-hugo/</guid><description>&lt;p&gt;As many before me, I&amp;rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&amp;rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&amp;rsquo;m saving some of these for blog posts).&lt;/p&gt;
+&lt;p&gt;Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).&lt;/p&gt;</description><content:encoded><![CDATA[<p>As many before me, I&rsquo;ve decided I need a website to share some of my work and ideas in an uncensored fashion. I set up this page almost a year ago, but I didn&rsquo;t add any content in the meanwhile. This was in part simply due to lack of motivation and second due to focusing on other projects (I&rsquo;m saving some of these for blog posts).</p>
 <p>Getting back to the website was easier this time round. Still I have decided to document the process of creating the website, so I can come back to it easily at any future point (hopefully sooner than one year).</p>
 <p>Since this post is aimed mostly towards myself, I might come back and add further instructions as I move along.</p>
 <h2 id="installing-hugo">Installing Hugo</h2>
@@ -905,13 +954,15 @@ katex: &#34;true&#34;</code></pre>
 <pre tabindex="0"><code>{{&lt; neq 1 &#34;E=mc^2&#34;  &gt;}}</code></pre>
 <p>where the first argument is the displayed equation number, and the second argument is a valid KaTeX formula (enclosed between quotation marks).</p>
 <p>Sample output:</p>
-
-<table style="width: 100%">
-<td style="width: 10000px;"></td>
-<td>$$E=mc^2$$</td>
-<td style="width: 10000px; text-align: right;">(1)</td>
+<table style="width: 100%; border: none; margin: 1rem 0;">
+  <tbody style="border: none;">
+    <tr style="background: none; border: none;">
+      <td style="border: none; padding: 0; width: 2.5rem;"></td>
+      <td style="border: none; padding: 0; text-align: center;">$$E=mc^2$$</td>
+      <td style="border: none; padding: 0; width: 2.5rem; text-align: right;">(1)</td>
+    </tr>
+  </tbody>
 </table>
-
 
 <p>At the moment referencing must be performed manually. If you find of a better solution for equation numbering, please let me know.</p>
 <p>Related:</p>
@@ -919,93 +970,7 @@ katex: &#34;true&#34;</code></pre>
 <li><a href="https://jsfiddle.net/p9du5Lgq/5/?utm_source=website&amp;utm_medium=embed&amp;utm_campaign=p9du5Lgq">KaTeX \tag hack</a></li>
 <li><a href="https://github.com/KaTeX/KaTeX/issues/350">Equation numbering (KaTeX issue)</a></li>
 </ul>
-]]></content:encoded>
-    </item>
-    <item>
-      <title></title>
-      <link>//localhost:1313/posts/1/01/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>//localhost:1313/posts/1/01/</guid>
-      <description>&lt;h1 id=&#34;wrapping-openmp-timing-functions&#34;&gt;Wrapping OpenMP timing functions&lt;/h1&gt;
-&lt;p&gt;Often-times when writing an OpenMP program, I&amp;rsquo;d like to time sections of the program to analyze the parallel speed-up.
-This requires measuring both the sequential performance (without OpenMP) versus the parallel performance.&lt;/p&gt;
-&lt;p&gt;OpenMP is designed to be used in way, such that the same program can be a valid OpenMP and non-OpenMP program.
-This is mainly achieved using directives.
-In some circumstances it is necessary to call OpenMP runtime functions, and in those situations it is helpful to use the conditional compilation features.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<h1 id="wrapping-openmp-timing-functions">Wrapping OpenMP timing functions</h1>
-<p>Often-times when writing an OpenMP program, I&rsquo;d like to time sections of the program to analyze the parallel speed-up.
-This requires measuring both the sequential performance (without OpenMP) versus the parallel performance.</p>
-<p>OpenMP is designed to be used in way, such that the same program can be a valid OpenMP and non-OpenMP program.
-This is mainly achieved using directives.
-In some circumstances it is necessary to call OpenMP runtime functions, and in those situations it is helpful to use the conditional compilation features.</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span>   nthreads <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#d20f39">!$</span> nthreads <span style="color:#04a5e5;font-weight:bold">=</span> omp_get_num_threads()</span></span></code></pre></div>
-<p>As a side-note; if you plan to use OpenMP, use three elements for spacing.</p>
-<p>It is also possible to the use the full preprocessor syntax, even if non-standard in Fortran.
-Most compilers define a preprocessor anyways.
-You can use it like this:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#if defined(_OPENMP)
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>	nthreads <span style="color:#04a5e5;font-weight:bold">=</span> omp_get_num_threads()
-</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">#else
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>	nthreads <span style="color:#04a5e5;font-weight:bold">=</span> <span style="color:#fe640b">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#d20f39">#</span><span style="color:#8839ef">endif</span></span></span></code></pre></div>
-<p>Normally I will use the conditional compilation syntax, just because it is easier to read.
-When optimizations are turned on, the compiler dead-code elimination pass should eliminate any redudant statements.</p>
-<p>However this doesn&rsquo;t work always.
-Take the following function:</p>
-
-
-
-
-
-
-<div class="highlight"><pre tabindex="0" style="color:#4c4f69;background-color:#eff1f5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fortran" data-lang="fortran"><span style="display:flex;"><span><span style="color:#8839ef">double precision</span> <span style="color:#8839ef">function</span> walltime()
-</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">!$ use omp_lib, only: omp_get_wtime
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>
-</span></span><span style="display:flex;"><span>   <span style="color:#8839ef">call</span> <span style="color:#04a5e5">cpu_time</span>(walltime)
-</span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic">!$ walltime = omp_get_wtime()
-</span></span></span><span style="display:flex;"><span><span style="color:#9ca0b0;font-style:italic"></span>
-</span></span><span style="display:flex;"><span><span style="color:#8839ef">end</span> <span style="color:#8839ef">function</span></span></span></code></pre></div>
-<p>The desired effect would be to call the OpenMP timing function only when OpenMP is turned on.
-By inspecting the assembly, we can easily determine, this is not the case.
-The compiler preserves both function calls.</p>
-<p>A possible explanation for this is that the <code>cpu_time</code> function is impure; i.e. it involves the reading of some global register.
-As a result, the compiler is not free to eliminate this call.</p>
-<p>The only viable workaround is to use conditional compilation:</p>
-
-
-
-
-
-
-<pre tabindex="0"><code>double precision function walltime()
-#if defined(_OPENMP)
-   use omp_lib, only: omp_get_wtime
-   walltime = omp_get_wtime()
-#else
-   call cpu_time(walltime)
-#endif
-end function</code></pre>
-]]></content:encoded>
-    </item>
-    <item>
-      <title></title>
-      <link>//localhost:1313/posts/1/01/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>//localhost:1313/posts/1/01/</guid>
-      <description>&lt;h1 id=&#34;is-fortran-all-we-need-for-performance&#34;&gt;Is Fortran all we need for performance?&lt;/h1&gt;
+]]></content:encoded></item><item><title/><link>https://ivan-pi.github.io/posts/1/01/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/posts/1/01/</guid><description>&lt;h1 id="is-fortran-all-we-need-for-performance"&gt;Is Fortran all we need for performance?&lt;/h1&gt;
 &lt;p&gt;There are many myths out in the wild:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;you just need C++&lt;/li&gt;
@@ -1016,8 +981,7 @@ end function</code></pre>
 &lt;p&gt;Design an API which encapsulates the operations you need.
 If performance is not good enough, seek to implement them by other means.&lt;/p&gt;
 &lt;p&gt;In practice we see that array reductions hardly reach the peak.&lt;/p&gt;
-&lt;p&gt;Even a memory copy won&amp;rsquo;t use nontemporal stores unless instructed too.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<h1 id="is-fortran-all-we-need-for-performance">Is Fortran all we need for performance?</h1>
+&lt;p&gt;Even a memory copy won&amp;rsquo;t use nontemporal stores unless instructed too.&lt;/p&gt;</description><content:encoded><![CDATA[<h1 id="is-fortran-all-we-need-for-performance">Is Fortran all we need for performance?</h1>
 <p>There are many myths out in the wild:</p>
 <ul>
 <li>you just need C++</li>
@@ -1029,28 +993,17 @@ If performance is not good enough, seek to implement them by other means.&lt;/p&
 If performance is not good enough, seek to implement them by other means.</p>
 <p>In practice we see that array reductions hardly reach the peak.</p>
 <p>Even a memory copy won&rsquo;t use nontemporal stores unless instructed too.</p>
-]]></content:encoded>
-    </item>
-    <item>
-      <title></title>
-      <link>//localhost:1313/posts/1/01/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>//localhost:1313/posts/1/01/</guid>
-      <description>&lt;p&gt;SIMD Libraries&lt;/p&gt;
+]]></content:encoded></item><item><title/><link>https://ivan-pi.github.io/posts/1/01/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/posts/1/01/</guid><description>&lt;p&gt;SIMD Libraries&lt;/p&gt;
 &lt;p&gt;Generic SIMD
-&lt;a href=&#34;https://github.com/genericsimd/generic_simd/&#34;&gt;https://github.com/genericsimd/generic_simd/&lt;/a&gt;
-&lt;a href=&#34;https://doi.org/10.1145/2568058.2568059&#34;&gt;https://doi.org/10.1145/2568058.2568059&lt;/a&gt;&lt;/p&gt;
+&lt;a href="https://github.com/genericsimd/generic_simd/"&gt;https://github.com/genericsimd/generic_simd/&lt;/a&gt;
+&lt;a href="https://doi.org/10.1145/2568058.2568059"&gt;https://doi.org/10.1145/2568058.2568059&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Google Highway
-&lt;a href=&#34;https://google.github.io/highway/en/master/&#34;&gt;https://google.github.io/highway/en/master/&lt;/a&gt;
-&lt;a href=&#34;https://github.com/google/highway&#34;&gt;https://github.com/google/highway&lt;/a&gt;&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>SIMD Libraries</p>
+&lt;a href="https://google.github.io/highway/en/master/"&gt;https://google.github.io/highway/en/master/&lt;/a&gt;
+&lt;a href="https://github.com/google/highway"&gt;https://github.com/google/highway&lt;/a&gt;&lt;/p&gt;</description><content:encoded><![CDATA[<p>SIMD Libraries</p>
 <p>Generic SIMD
 <a href="https://github.com/genericsimd/generic_simd/">https://github.com/genericsimd/generic_simd/</a>
 <a href="https://doi.org/10.1145/2568058.2568059">https://doi.org/10.1145/2568058.2568059</a></p>
 <p>Google Highway
 <a href="https://google.github.io/highway/en/master/">https://google.github.io/highway/en/master/</a>
 <a href="https://github.com/google/highway">https://github.com/google/highway</a></p>
-]]></content:encoded>
-    </item>
-  </channel>
-</rss>
+]]></content:encoded></item></channel></rss>
