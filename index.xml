@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Ivan Pribec</title><link>https://ivan-pi.github.io/</link><description>Recent content on Ivan Pribec</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright><lastBuildDate>Sat, 18 Jul 2026 00:00:00 +0200</lastBuildDate><atom:link href="https://ivan-pi.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Sizing RBF-FD Stencils for Modern CPU Caches</title><link>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</link><pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate><guid>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</guid><description>&lt;p&gt;One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Ivan Pribec</title><link>https://ivan-pi.github.io/</link><description>Recent content on Ivan Pribec</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright><lastBuildDate>Sat, 18 Jul 2026 00:00:00 +0200</lastBuildDate><atom:link href="https://ivan-pi.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Sizing RBF-FD Stencils for Modern CPU Caches</title><link>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</link><pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate><guid>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</guid><description>&lt;p&gt;One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
 The number of monomials terms in the augmented polynomial basis is given by the &lt;a href="https://en.wikipedia.org/wiki/Triangular_number"&gt;triangular numbers&lt;/a&gt; in 2-d and the &lt;a href="https://en.wikipedia.org/wiki/Tetrahedral_number"&gt;tetrahedral numbers&lt;/a&gt; in 3-d.
 The number of terms can also be read from Pascal&amp;rsquo;s triangle/pyramid.&lt;/p&gt;
 &lt;p&gt;For the RBF stencil size a common heuristic is to use twice the number of polynomials terms.
@@ -982,13 +982,31 @@ katex: &#34;true&#34;</code></pre>
 <li><a href="https://github.com/ivan-pi/fmetis">METIS</a>: Serial Graph Partitioning and Fill-reducing Matrix Ordering</li>
 <li><a href="https://github.com/ivan-pi/flann">FLANN</a>:
 Fast Library for Approximate Nearest Neighbors (original library <a href="http://people.cs.ubc.ca/~mariusm/flann">here</a>)</li>
+<li><a href="https://github.com/ivan-pi/libdogleg-f">libdogleg-f</a>: Fortran bindings to libdogleg, a large-scale nonlinear least-squares optimization library</li>
+<li><a href="https://github.com/ivan-pi/blis-fortran">blis-fortran</a>: Fortran bindings for BLIS generated using Coccinelle (the subject of my <a href="https://archive.fosdem.org/2025/schedule/event/fosdem-2025-6509-easier-api-interoperability-writing-a-bindings-generator-to-c-c-with-coccinelle/">FOSDEM 2025 talk</a>)</li>
+<li><a href="https://github.com/ivan-pi/Fortran-KaHIP-Interface">Fortran-KaHIP-Interface</a>: A modern Fortran interface to the <a href="https://github.com/KaHIP">KaHIP</a> graph partitioning framework</li>
+</ul>
+<h2 id="python-bindings">Python bindings</h2>
+<ul>
+<li><a href="https://ivan-pi.github.io/zvode/">zvode</a>: Python bindings to the classic ZVODE ODE solver.</li>
+<li><a href="https://pypi.org/project/phs-poly/">phs_poly</a>: Procedures for generating RBF-FD weights for derivative calculations.</li>
+</ul>
+<h2 id="fortran-tooling">Fortran tooling</h2>
+<ul>
+<li><a href="https://ivan-pi.github.io/fpm-deps/">fpm-deps and fpm-tree</a>: <code>fpm-deps</code> generates dependency graphs of <a href="https://fpm.fortran-lang.org/">fpm</a> packages, with <code>fpm-tree</code> as a companion tool.</li>
 </ul>
 <h2 id="legacy-code">Legacy code</h2>
 <ul>
+<li><a href="https://github.com/ivan-pi/stiff3">stiff3</a>: Adaptive solver for stiff systems of ODEs using semi-implicit Runge-Kutta method of third order.</li>
+<li><a href="https://github.com/ivan-pi/bode">bode</a>: A low-order adaptive solver for implicit ODEs.</li>
+<li><a href="https://github.com/ivan-pi/y12m">y12m</a>: Solution of Large and Sparse Systems of Linear Algebraic Equations.</li>
+<li><a href="https://github.com/ivan-pi/kdtree2">kdtree2</a>: A kd-tree implementation in Fortran by Matthew B. Kennel. The original was archived and is now maintained, evolved, and tested by me with other contributions.</li>
+<li><a href="https://github.com/ivan-pi/pdecheb">pdecheb</a>: Chebyshev Polynomial Software for Elliptic-Parabolic Systems of PDEs.</li>
 <li><a href="https://github.com/ivan-pi/TOMS-494">Algorithm 494: PDEONE</a> is a subroutine developed by Sincovec and Madsen in 1975 for solving one-dimensional systems of PDEs using the method of lines. Second-order centered difference approximations are used to discretize the spatial variable and yield a system of ordinary differential equations that can be integrated in time with a robust ODE integrator (like LSODE).</li>
 <li><a href="https://github.com/ivan-pi/TOMS-Algorithm-675">Algorithm 675</a>: Fortran subroutines for computing the square root covariance filter and square root information filter in dense and hessenberg forms; codes are provided for the square root covariance filter and the square root information filter.</li>
 <li><a href="https://github.com/ivan-pi/stroud_quad">Quadrature routines from Stroud &amp; Secrest</a> - An updated version of the routines from the book <em>Gaussian quadrature formulas</em> by A. H. Stroud and D. Secrest published in 1966. Includes routines for generatics the knots and weights of the classic Jacobi, Laguerre, and Hermite quadratures.</li>
 <li><a href="https://github.com/ivan-pi/fortran_lsp">Least squares solvers from Lawson &amp; Hanson</a> - This package contains the routines from the book <em>Solving least squares problems</em> by Lawson and Hanson (1995). Most of the routines date back to the 1974 version of the book and were developed for use at the NASA Jet Propulsion Laboratory in California, Pasadena. I have tried to modernize the interfaces of most of the subroutines. The non-negative least squares solver <code>nnls</code> appears also in <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.nnls.html"><code>scipy.optimize.nnls</code></a>.</li>
+<li><a href="https://github.com/ivan-pi/vanhuffel">vanhuffel</a>: Partial Total Least Squares routines from Sabine Van Huffel (I only cleaned up the build of this package).</li>
 </ul>
 ]]></content:encoded></item><item><title>Diary</title><link>https://ivan-pi.github.io/links/diary/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://ivan-pi.github.io/links/diary/</guid><description>&lt;p&gt;A chronological collection of things I&amp;rsquo;ve found interesting. Back to &lt;a href="https://ivan-pi.github.io/links/"&gt;links&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 id="2026-07-18"&gt;2026-07-18&lt;/h2&gt;
