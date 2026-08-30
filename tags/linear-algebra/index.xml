@@ -1,16 +1,22 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Ivan Pribec</title><link>https://ivan-pi.github.io/tags/linear-algebra/</link><description>Recent content on Ivan Pribec</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright><lastBuildDate>Sat, 18 Jul 2026 00:00:00 +0200</lastBuildDate><atom:link href="https://ivan-pi.github.io/tags/linear-algebra/index.xml" rel="self" type="application/rss+xml"/><item><title>Sizing RBF-FD Stencils for Modern CPU Caches</title><link>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</link><pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate><guid>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</guid><description>&lt;p&gt;One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
-The number of monomials terms in the augmented polynomial basis is given by the &lt;a href="https://en.wikipedia.org/wiki/Triangular_number"&gt;triangular numbers&lt;/a&gt; in 2-d and the &lt;a href="https://en.wikipedia.org/wiki/Tetrahedral_number"&gt;tetrahedral numbers&lt;/a&gt; in 3-d.
-The number of terms can also be read from Pascal&amp;rsquo;s triangle/pyramid.&lt;/p&gt;
-&lt;p&gt;For the RBF stencil size a common heuristic is to use twice the number of polynomials terms.
-This heuristic originates from the work of Grady Wright.
-While this rule of thumb is a standard starting point for stencil sizing, the relationship between accuracy, computational time, and monomial augmentation remains an active area of research.
-Readers can find more information in the analysis by &lt;a href="https://doi.org/10.1007/s10915-020-01401-y"&gt;Jančič, Slak, and Kosec (2021)&lt;/a&gt; and citing works.&lt;/p&gt;</description><content:encoded><![CDATA[<p>One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
-The number of monomials terms in the augmented polynomial basis is given by the <a href="https://en.wikipedia.org/wiki/Triangular_number">triangular numbers</a> in 2-d and the <a href="https://en.wikipedia.org/wiki/Tetrahedral_number">tetrahedral numbers</a> in 3-d.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Ivan Pribec</title><link>https://ivan-pi.github.io/tags/linear-algebra/</link><description>Recent content on Ivan Pribec</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>© 2025 — Ivan Pribec — All rights reserved.</copyright><lastBuildDate>Sat, 18 Jul 2026 00:00:00 +0200</lastBuildDate><atom:link href="https://ivan-pi.github.io/tags/linear-algebra/index.xml" rel="self" type="application/rss+xml"/><item><title>Sizing RBF-FD Stencils for Modern CPU Caches</title><link>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</link><pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate><guid>https://ivan-pi.github.io/posts/2026/07/sizing-rbf-fd-stencils-for-modern-cpu-caches/</guid><description>&lt;p class="notice"&gt;
+&lt;strong&gt;Interactive version:&lt;/strong&gt; the &lt;a href="https://ivan-pi.github.io/tools/rbf_fd_stencil_sizer.html"&gt;RBF-FD Stencil Sizer&lt;/a&gt; computes the sizes below for any polynomial degree, dimension and precision, and checks the footprint against L1/L2 caches or GPU shared memory.
+&lt;/p&gt;
+&lt;p&gt;One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
+The number of monomial terms in the augmented polynomial basis is given by the &lt;a href="https://en.wikipedia.org/wiki/Triangular_number"&gt;triangular numbers&lt;/a&gt; in 2-d and the &lt;a href="https://en.wikipedia.org/wiki/Tetrahedral_number"&gt;tetrahedral numbers&lt;/a&gt; in 3-d.
+For a basis complete through total degree $p$ there are $(p+1)(p+2)/2$ terms in 2-d and $(p+1)(p+2)(p+3)/6$ terms in 3-d.
+The number of terms can also be read from Pascal&amp;rsquo;s triangle/pyramid.&lt;/p&gt;</description><content:encoded><![CDATA[<p class="notice">
+  <strong>Interactive version:</strong> the <a href="/tools/rbf_fd_stencil_sizer.html">RBF-FD Stencil Sizer</a> computes the sizes below for any polynomial degree, dimension and precision, and checks the footprint against L1/L2 caches or GPU shared memory.
+</p>
+
+<p>One of the benefits of the RBF-FD methods compared to grid-based finite differences is it is straightforward to change the order of accuracy via the augmented polynomials.
+The number of monomial terms in the augmented polynomial basis is given by the <a href="https://en.wikipedia.org/wiki/Triangular_number">triangular numbers</a> in 2-d and the <a href="https://en.wikipedia.org/wiki/Tetrahedral_number">tetrahedral numbers</a> in 3-d.
+For a basis complete through total degree $p$ there are $(p+1)(p+2)/2$ terms in 2-d and $(p+1)(p+2)(p+3)/6$ terms in 3-d.
 The number of terms can also be read from Pascal&rsquo;s triangle/pyramid.</p>
 <p>For the RBF stencil size a common heuristic is to use twice the number of polynomials terms.
-This heuristic originates from the work of Grady Wright.
-While this rule of thumb is a standard starting point for stencil sizing, the relationship between accuracy, computational time, and monomial augmentation remains an active area of research.
-Readers can find more information in the analysis by <a href="https://doi.org/10.1007/s10915-020-01401-y">Jančič, Slak, and Kosec (2021)</a> and citing works.</p>
+This rule of thumb goes back to <a href="https://doi.org/10.1016/j.jcp.2016.02.078">Flyer, Barnett, and Wicker (2016)</a>.
+While it is a standard starting point for stencil sizing, the relationship between accuracy, computational time, and monomial augmentation remains an active area of research.
+Readers can find more information in the analysis by <a href="https://doi.org/10.1007/s10915-020-01401-y">Jančič, Slak, and Kosec (2021)</a> and citing works.
+For a broad study of how the many RBF-FD parameters interact — stencil size, polynomial degree, RBF choice, node distribution — <a href="https://doi.org/10.1007/s10915-023-02123-7">Le Borne and Leinen (2023)</a> is a good source.</p>
 <p>The tables below show how the RBF-FD matrix dimensions varies for 2-D and 3-D RBF-FD approximation.
 We also include the storage size of the matrices for 32- and 64-bit floats.</p>
 <p><strong>2-D RBF-FD approximation</strong></p>
@@ -27,73 +33,73 @@ We also include the storage size of the matrices for 32- and 64-bit floats.</p>
   <tbody>
       <tr>
           <td>1</td>
-          <td>1</td>
-          <td>3</td>
-          <td>0.035</td>
-          <td>0.070</td>
-      </tr>
-      <tr>
-          <td>2</td>
           <td>3</td>
           <td>9</td>
           <td>0.316</td>
           <td>0.633</td>
       </tr>
       <tr>
-          <td>3</td>
+          <td>2</td>
           <td>6</td>
           <td>18</td>
           <td>1.266</td>
           <td>2.531</td>
       </tr>
       <tr>
-          <td>4</td>
+          <td>3</td>
           <td>10</td>
           <td>30</td>
           <td>3.516</td>
           <td>7.031</td>
       </tr>
       <tr>
-          <td>5</td>
+          <td>4</td>
           <td>15</td>
           <td>45</td>
           <td>7.910</td>
           <td>15.820</td>
       </tr>
       <tr>
-          <td>6</td>
+          <td>5</td>
           <td>21</td>
           <td>63</td>
           <td>15.504</td>
           <td>31.008</td>
       </tr>
       <tr>
-          <td>7</td>
+          <td>6</td>
           <td>28</td>
           <td>84</td>
           <td>27.563</td>
           <td>55.125</td>
       </tr>
       <tr>
-          <td>8</td>
+          <td>7</td>
           <td>36</td>
           <td>108</td>
           <td>45.563</td>
           <td>91.125</td>
       </tr>
       <tr>
-          <td>9</td>
+          <td>8</td>
           <td>45</td>
           <td>135</td>
           <td>71.191</td>
           <td>142.383</td>
       </tr>
       <tr>
-          <td>10</td>
+          <td>9</td>
           <td>55</td>
           <td>165</td>
           <td>106.348</td>
           <td>212.695</td>
+      </tr>
+      <tr>
+          <td>10</td>
+          <td>66</td>
+          <td>198</td>
+          <td>153.141</td>
+          <td>306.281</td>
       </tr>
   </tbody>
 </table>
@@ -111,73 +117,73 @@ We also include the storage size of the matrices for 32- and 64-bit floats.</p>
   <tbody>
       <tr>
           <td>1</td>
-          <td>1</td>
-          <td>3</td>
-          <td>0.035</td>
-          <td>0.070</td>
-      </tr>
-      <tr>
-          <td>2</td>
           <td>4</td>
           <td>12</td>
           <td>0.563</td>
           <td>1.125</td>
       </tr>
       <tr>
-          <td>3</td>
+          <td>2</td>
           <td>10</td>
           <td>30</td>
           <td>3.516</td>
           <td>7.031</td>
       </tr>
       <tr>
-          <td>4</td>
+          <td>3</td>
           <td>20</td>
           <td>60</td>
           <td>14.063</td>
           <td>28.125</td>
       </tr>
       <tr>
-          <td>5</td>
+          <td>4</td>
           <td>35</td>
           <td>105</td>
           <td>43.066</td>
           <td>86.133</td>
       </tr>
       <tr>
-          <td>6</td>
+          <td>5</td>
           <td>56</td>
           <td>168</td>
           <td>110.250</td>
           <td>220.500</td>
       </tr>
       <tr>
-          <td>7</td>
+          <td>6</td>
           <td>84</td>
           <td>252</td>
           <td>248.063</td>
           <td>496.125</td>
       </tr>
       <tr>
-          <td>8</td>
+          <td>7</td>
           <td>120</td>
           <td>360</td>
           <td>506.250</td>
           <td>1012.500</td>
       </tr>
       <tr>
-          <td>9</td>
+          <td>8</td>
           <td>165</td>
           <td>495</td>
           <td>957.129</td>
           <td>1914.258</td>
       </tr>
       <tr>
-          <td>10</td>
+          <td>9</td>
           <td>220</td>
           <td>660</td>
           <td>1701.563</td>
           <td>3403.125</td>
+      </tr>
+      <tr>
+          <td>10</td>
+          <td>286</td>
+          <td>858</td>
+          <td>2875.641</td>
+          <td>5751.281</td>
       </tr>
   </tbody>
 </table>
@@ -240,11 +246,14 @@ logarithmic.</p>
 </object>
 <figcaption>System-matrix storage vs. polynomial order for the <em>twice the number of polynomial terms</em> stencil heuristic, in single (fp32) and double (fp64) precision. Horizontal lines mark representative L1 data cache sizes. <em>Interactive:</em> hover to read off values, and click a legend entry to toggle a curve.</figcaption>
 </figure>
-<p>For polynomials below order 7 in 2D (or 5 in 3D) the RBF-FD matrices fit comfortably in the lowest cache level.
+<p>For polynomials below order 6 in 2D (or 4 in 3D) the RBF-FD matrices fit comfortably in the lowest cache level.
 The Apple M-series and recent ARM servers like the Nvidia Grace or Fujitsu A64FX have a slight advantage due to the larger L1 cache sizes.
 Intel and AMD CPUs used 32 KB L1 data caches for more than a decade.
 AMD increased the size only recently with the Zen 5 series launched in 2024.
 Intel made the upgrade from 32 KB to 48 KB in the Sunny Cove architecture launched in 2019.</p>
 <p>(Note: Apples&rsquo;s efficiency cores (E-cores) use smaller 64 kB L1D caches.
 Intel&rsquo;s efficiency cores have remained at 32 kB L1 data caches. )</p>
+<hr>
+<p><em>Correction (2026-08-30): the monomial counts in the tables and the figure were originally shifted by one order — the row labelled order $p$ held the count for degree $p-1$, so order 2 in 2-D showed 3 terms instead of 6. The tables and figure have been recomputed, which moves the cache-fit thresholds down by one order as well. The stencil-size heuristic was also misattributed to Grady Wright; it originates with Flyer, Barnett, and Wicker.</em></p>
+<p><em>Update (2026-08-30): added the <a href="/tools/rbf_fd_stencil_sizer.html">RBF-FD Stencil Sizer</a> linked at the top.</em></p>
 ]]></content:encoded></item></channel></rss>
